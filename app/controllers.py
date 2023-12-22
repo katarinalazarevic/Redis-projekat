@@ -1,5 +1,5 @@
 from database import db_session
-from models import Probas
+from app.modelsKupac import Probas
 
 class Controllers:
     u = Probas('admin1', 'admin@localhost1')
