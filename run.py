@@ -1,4 +1,5 @@
-from flask import Flask
+from flask import Flask,jsonify
+from flasgger import Swagger
 from app.CRUDKupci import azuriraj_kupca, obrisi_kupca
 #from  import kupac_routes
 from app.routesKupac import Kupac
@@ -9,6 +10,7 @@ from app.routesKupac import kupac_routes
 
 
 app1 = Flask(__name__)
+swagger= Swagger(app1)
 app1.register_blueprint(kupac_routes)
 init_db()
 

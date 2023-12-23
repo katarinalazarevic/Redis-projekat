@@ -39,6 +39,6 @@ class Kupac(Base):
     #         self.email = email
     #     db_session.commit()
 
-    # def delete(self):
-    #     db_session.delete(self)
-    #     db_session.commit()
+    def delete(self):
+        db_session.delete(self)
+        db_session.commit()
