@@ -1,5 +1,6 @@
 from flask import Flask,jsonify
 from flasgger import Swagger
+from flask_restful import Api
 from app.CRUDKupci import azuriraj_kupca, obrisi_kupca
 #from  import kupac_routes
 from app.Routes.routesKupac import Kupac
@@ -9,8 +10,8 @@ from app.Routes.routesKupac import kupac_routes
 from app.Routes.routesProduct import product_routes
 from app.Routes.redisRoutes import redis_routes
 
-
 app1 = Flask(__name__)
+api=Api(app1)
 swagger= Swagger(app1)
 app1.register_blueprint(kupac_routes)
 app1.register_blueprint(product_routes)

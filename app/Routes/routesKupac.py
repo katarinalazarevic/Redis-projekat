@@ -1,9 +1,12 @@
+
 from flask import app, jsonify, request
 from app.Models.modelsKupac import Kupac
 from flask import Blueprint
 from database import db_session
 from flasgger import swag_from
-#from flask_restplus import Resource, Api, reqparse
+from flask_restful import Resource, Api, reqparse
+#from run import api
+from flask_bcrypt import bcrypt
 
 kupac_routes = Blueprint('kupac_routes', __name__)
 
@@ -219,20 +222,77 @@ def izmeniKupca(kupacID):
         return jsonify({'message': 'Kupac not found!'}),404
 
 
-# login_parser = reqparse.RequestParser()
-# login_parser.add_argument('email', type=str, help='User email', required=True)
-# login_parser.add_argument('password', type=str, help='User password', required=True)
 
-# @kupac_routes.route('/login')
-# class LoginResource(Resource):
-#     @kupac_routes.expect(login_parser)
-#     def get(self):
-#         args = login_parser.parse_args()
-#         email = args['email']
-#         password = args['password']
+@kupac_routes.route('/register', methods=['POST'])
+@swag_from({
+    'parameters': [
+        {
+            'name': 'data',
+            'in': 'body',
+            'required': True,
+            'schema': {
+                'properties': {
+                    'ime': {'type': 'string'},
+                    'prezime': {'type': 'string'},
+                    'email': {'type': 'string'},
+                    'password': {'type': 'string'},
+                    'ulica': {'type': 'string'},
+                    'grad': {'type': 'string'},
+                    'broj': {'type': 'string'},
+                }
+            }
+        }
+    ],
+    'responses': {
+        201: {
+            'description': 'Registracija uspešna',
+            'schema': {
+                'properties': {
+                    'message': {'type': 'string'}
+                }
+            }
+        },
+        400: {
+            'description': 'Bad Request',
+            'schema': {
+                'properties': {
+                    'message': {'type': 'string'}
+                }
+            }
+        }
+    }
+})
+def register():
+    data = request.get_json()
+    ime = data.get('ime')
+    prezime = data.get('prezime')
+    email = data.get('email')
+    password = data.get('password')
+    ulica = data.get('ulica')
+    grad = data.get('grad')
+    broj = data.get('broj')
+    existing_user = Kupac.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({'message': 'Korisnik sa datim emailom već postoji'}), 400
+    # Kreiranje novog korisnika
+    password_hash = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    new_user = Kupac(ime=ime, prezime=prezime, email=email, password_hash=password_hash, ulica=ulica, grad=grad, broj=broj)
+    db_session.add(new_user)
+    db_session.commit()
+    return jsonify({'message': 'Registracija uspešna'}), 201
 
-#         # Ovde dodajte logiku za proveru e-maila i šifre
-#         if email == 'test@email.com' and password == 'testpassword':
-#             return {'message': 'Uspešno ste se prijavili!', 'email': email, 'password': password}
-#         else:
-#             return {'message': 'Neuspešna prijava. Proverite e-mail i šifru.'}
+@kupac_routes.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+    if not email or not password:
+        return jsonify({'message': 'Username and password are required'}), 401
+
+    # Provera korisnika
+    user =Kupac.query.filter_by(email=email).first()
+
+    if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
+        return jsonify({'message': 'Uspešna prijava'}), 200
+    else:
+        return jsonify({'message': 'Pogrešan email ili šifra'}), 401
