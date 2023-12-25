@@ -1,4 +1,4 @@
-from app.routesKupac import Kupac
+from app.Routes.routesKupac import Kupac
 
 def azuriraj_kupca():
     id_za_azuriranje = input("Unesite ID kupca za ažuriranje: ")

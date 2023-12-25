@@ -1,8 +1,9 @@
 from flask import app, jsonify, request
-from app.modelsKupac import Kupac
+from app.Models.modelsKupac import Kupac
 from flask import Blueprint
 from database import db_session
 from flasgger import swag_from
+#from flask_restplus import Resource, Api, reqparse
 
 kupac_routes = Blueprint('kupac_routes', __name__)
 
@@ -92,14 +93,7 @@ def create_kupac():
 }
 })
 def get_kupac(kupac_id):
-    """
-    Get information about a specific kupac.
 
-    :param kupac_id: ID of the kupac
-    :type kupac_id: int
-    :return: Information about the kupac
-    :rtype: dict
-    """
     kupac = Kupac.get_by_id(kupac_id)
     if not kupac:
         return jsonify({'message': 'Kupac not found'}), 404
@@ -224,3 +218,21 @@ def izmeniKupca(kupacID):
     else:
         return jsonify({'message': 'Kupac not found!'}),404
 
+
+# login_parser = reqparse.RequestParser()
+# login_parser.add_argument('email', type=str, help='User email', required=True)
+# login_parser.add_argument('password', type=str, help='User password', required=True)
+
+# @kupac_routes.route('/login')
+# class LoginResource(Resource):
+#     @kupac_routes.expect(login_parser)
+#     def get(self):
+#         args = login_parser.parse_args()
+#         email = args['email']
+#         password = args['password']
+
+#         # Ovde dodajte logiku za proveru e-maila i šifre
+#         if email == 'test@email.com' and password == 'testpassword':
+#             return {'message': 'Uspešno ste se prijavili!', 'email': email, 'password': password}
+#         else:
+#             return {'message': 'Neuspešna prijava. Proverite e-mail i šifru.'}

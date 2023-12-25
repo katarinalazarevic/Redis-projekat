@@ -6,7 +6,7 @@ class Kupac(Base):
     id = Column(Integer, primary_key=True,autoincrement=True)
     name = Column(String(50), unique=False)
     email = Column(String(120), unique=True)
-
+    
     def __init__(self, name=None, email=None):
         self.name = name
         self.email = email
