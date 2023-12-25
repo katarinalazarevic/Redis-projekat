@@ -38,12 +38,14 @@ class Proizvod(Base):
     
     @staticmethod
     def get_by_id(produc_id):
-        kupac = Proizvod.query.filter_by(id=produc_id).first()
-        return kupac
+        proizvod = Proizvod.query.filter_by(id=produc_id).first()
+        return proizvod
     
     def delete(self):
         db_session.delete(self)
         db_session.commit()
+
+
     
     
     
