@@ -1,82 +1,20 @@
 import json
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, request
 from app.Models.modelsKatalog import Proizvod
-from app.Models.modelsRedis import RedisService
-from flasgger import swag_from
+from database import db_session,redis_client
 from sqlalchemy.orm import class_mapper
-from database import redis_client,db_session
+from flasgger import swag_from
 
 
-
-redis_routes = Blueprint('redis_routes', __name__)
-
-@redis_routes.route('/dodavanjeProizvodaUKorpu/<int:product_id>', methods=['GET'])
-def dodavanjeProizvodaUKorpu(product_id):
-    """
-    Upisuje proizvod u Redis na temelju proslijeđenog ID-a.
-
-    ---
-    parameters:
-      - in: path
-        name: product_id
-        schema:
-          type: integer
-        required: true
-        description: ID proizvoda koji se upisuje u Redis
-    responses:
-      200:
-        description: Uspješan upis proizvoda u Redis
-      500:
-        description: Greška prilikom upisa proizvoda u Redis
-    """
-    try:
-        proizvod = Proizvod.get_by_id(product_id)  
-
-        if not proizvod:
-            return jsonify({'message': 'Proizvod sa traženim ID-om nije pronađen.'}), 404
-
-        product_key = f'product:{product_id}'
-
-        if redis_client.exists(product_key):
-            return jsonify({'message': 'Proizvod već postoji u Redisu.'}), 409
-
-        product_name = proizvod.producerName
-        redis_client.set(product_key, product_name)
-
-        return jsonify({'message': 'Proizvod uspešno upisan u Redis.'}), 200
-    except Exception as e:
-        return jsonify({'message': f'Greška prilikom upisa proizvoda u Redis: {str(e)}'}), 500
-@redis_routes.route('/citanjeProzivodaIzKorpe/<int:produc_id>', methods=['GET'])
-def citanjeProzivodaIzKorpe(produc_id):
-    """
-    Provjera postojanja proizvoda u Redisu na temelju ID-a.
-
-    ---
-    parameters:
-      - in: path
-        name: produc_id
-        schema:
-          type: integer
-        required: true
-        description: ID proizvoda koji se provjerava u Redisu
-    responses:
-      200:
-        description: Informacija o postojanju proizvoda u Redisu
-      404:
-        description: Proizvod nije pronađen u Redisu
-    """
-    result = RedisService.procitajProizvodIzKorpe(produc_id)
-    if 'pronađen' in result:
-        return result, 200
-    else:
-        return result, 404
-
+redis_routes1 = Blueprint('redis_routes1', __name__)
+# class Redis:
+#     @staticmethod
 def as_dict(obj):
     return {column.key: getattr(obj, column.key) for column in class_mapper(obj.__class__).mapped_table.c}
 
     
     #@redis_routes.route('/products_by_category', methods=['GET'])
-@redis_routes.route('/products_by_category', methods=['GET'])
+@redis_routes1.route('/products_by_category', methods=['GET'])
 @swag_from({
     'parameters': [
         {
