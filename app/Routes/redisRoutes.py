@@ -43,6 +43,8 @@ def dodavanjeProizvodaUKorpu(product_id):
         product_name = proizvod.producerName
         redis_client.set(product_key, product_name)
 
+        redis_client.expire(product_key, 30)
+
         return jsonify({'message': 'Proizvod uspešno upisan u Redis.'}), 200
     except Exception as e:
         return jsonify({'message': f'Greška prilikom upisa proizvoda u Redis: {str(e)}'}), 500
