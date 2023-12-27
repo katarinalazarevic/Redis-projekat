@@ -51,7 +51,7 @@ def dodavanjeProizvodaUKorpu(product_id):
 @redis_routes.route('/citanjeProzivodaIzKorpe/<int:produc_id>', methods=['GET'])
 def citanjeProzivodaIzKorpe(produc_id):
     """
-    Provjera postojanja proizvoda u Redisu na temelju ID-a.
+    Provera postojanja proizvoda u Redisu na temelju ID-a.
 
     ---
     parameters:
@@ -138,4 +138,3 @@ def get_products_by_category():
             redis_client.hset(hash_key, product_dict['id'], json.dumps(product_dict))
         # Povratni podaci
         return [json.loads(product) for product in redis_client.hvals(hash_key)]
-# Pimer korišćenja:
