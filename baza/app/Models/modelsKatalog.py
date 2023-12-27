@@ -14,6 +14,21 @@ class Proizvod(Base):
     discount=Column(Integer, unique=False)
     quantity=Column(Integer, unique=False)
 
+    def toDict(self):
+        return {
+            'id': self.id,
+            'producerName': self.producerName,
+            'productDescription': self.productDescription,
+            'category': self.category,
+            'price': self.price,
+            'numOfCliks': self.numOfCliks,
+            'picture': self.picture,
+            'discount': self.discount,
+            'quantity': self.quantity
+        }
+    @classmethod
+    def fromDict(cls, data):
+        return cls(**data)
     def __init__(self, producerName,productDescription=None, category=None,
                  price=0,picture=None, discount=0,quantity=None):
         self.producerName=producerName

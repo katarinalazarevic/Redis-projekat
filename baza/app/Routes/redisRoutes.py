@@ -1,4 +1,5 @@
 import json
+import pickle
 from flask import Blueprint, jsonify, request
 from app.Models.modelsKatalog import Proizvod
 from app.Models.modelsRedis import RedisService
@@ -41,7 +42,7 @@ def dodavanjeProizvodaUKorpu(product_id):
             return jsonify({'message': 'Proizvod već postoji u Redisu.'}), 409
 
         product_name = proizvod.producerName
-        redis_client.set(product_key, product_name)
+        redis_client.set(product_key, product_name) #pretrazujemo redi po product_key
 
         redis_client.expire(product_key, 30)
 
@@ -124,7 +125,7 @@ def get_products_by_category():
     category = request.args.get('category')
     #category = data.get('category')
     # Provera da li postoji hash za datu kategoriju u Redisu
-    hash_key = f'category:{category}'
+    hash_key = f'category:{category}' #po kategoriji
     if redis_client.exists(hash_key):
         # Ako postoji hash, čitamo vrednosti i vraćamo ih kao listu
         products_json = redis_client.hvals(hash_key)
@@ -138,3 +139,64 @@ def get_products_by_category():
             redis_client.hset(hash_key, product_dict['id'], json.dumps(product_dict))
         # Povratni podaci
         return [json.loads(product) for product in redis_client.hvals(hash_key)]
+    
+@redis_routes.route('/prvih_deset_proizvoda', methods=['GET'])
+def prvih_deset_proizvoda():
+    """
+    Prikazuje prvih 10 proizvoda.
+    ---
+    responses:
+      200:
+        description: Lista prvih 10 proizvoda.
+    """
+    redis_key = 'pocetni_proizvodi1'
+    cached_data=redis_client.get('pocetni_proizvodi1')
+    if cached_data:
+        # Ako postoje, koristi keširane podatke
+        cached_data = json.loads(cached_data.encode('utf-8'))
+        # Prikazivanje podataka iz Redis-a, bez kreiranja novih instanci klase Proizvod
+        return jsonify({'proizvodi': [(proizvod['id'], proizvod) for proizvod in cached_data['proizvodi']]})
+
+    pocetni_proizvodi = Proizvod.query.limit(10).all()
+
+    # Keširanje podataka u Redis koristeći JSON
+    data_to_cache = json.dumps({'proizvodi': [proizvod.toDict() for proizvod in pocetni_proizvodi]}, default=str)
+    redis_client.set(redis_key, data_to_cache, ex=15)
+    response_data = {'proizvodi': [(proizvod.id, proizvod.toDict()) for proizvod in pocetni_proizvodi]}
+
+    return jsonify(response_data)
+@redis_routes.route('/ucitaj_narednih_10', methods=['POST'])
+def ucitaj_narednih_10():
+    """
+    Učitava sledećih 10 proizvoda na osnovu trenutne stranice.
+    ---
+    parameters:
+      - name: stranica
+        in: query
+        type: integer
+        description: Trenutna stranica
+        required: false
+        default: 2
+    responses:
+      200:
+        description: Lista sledećih 10 proizvoda.
+    """
+    # Dohvatanje informacija o trenutnoj stranici i broju proizvoda po stranici
+    stranica = request.args.get('stranica', default=2, type=int)
+    broj_proizvoda_po_stranici = 10
+    redis_key=f'proizvodi_stranica_{stranica}'
+    # Pokušaj prvo dohvatiti iz Redis hash-a
+    cached_data=redis_client.get(f'proizvodi_stranica_{stranica}')
+    if cached_data:
+        # Ako postoje, koristi keširane podatke
+        cached_data = json.loads(cached_data.encode('utf-8'))
+        return jsonify({'proizvodi': [(proizvod['id'], proizvod) for proizvod in cached_data['proizvodi']]})
+    else:
+            # Ako nije u Redis kešu, dohvati iz PostgreSQL-a pomoću SQLAlchemy-ja
+            pocetni_indeks = (stranica - 1) * broj_proizvoda_po_stranici
+            pocetni_proizvodi = Proizvod.query.offset(pocetni_indeks).limit(broj_proizvoda_po_stranici).all()
+            data_to_cache = json.dumps({'proizvodi': [proizvod.toDict() for proizvod in pocetni_proizvodi]}, default=str)
+            redis_client.set(redis_key, data_to_cache, ex=15)
+            response_data = {'proizvodi': [(proizvod.id, proizvod.toDict()) for proizvod in pocetni_proizvodi]}
+
+            return jsonify(response_data)
