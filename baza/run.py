@@ -17,7 +17,7 @@ from app.Routes.redisRoutes import redis_routes
 
 app1 = Flask(__name__)
 api=Api(app1)
-CORS(app1, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+CORS(app1, resources={r"/*": {"origins": "http://localhost:3000"}})
 swagger= Swagger(app1)
 app1.register_blueprint(kupac_routes)
 app1.register_blueprint(product_routes)
