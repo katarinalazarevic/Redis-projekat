@@ -1,0 +1,22 @@
+.sg-products {
+    width: 100%;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* Pet kolona unutar grida */
+    gap: 20px; /* Rastojanje između elemenata */
+  }
+  
+  .product-item {
+    width: 100%;
+    /* Dodajte stilove za svaki proizvod ako je potrebno */
+  }
+  .dugmeVidiJos {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+  }
+  

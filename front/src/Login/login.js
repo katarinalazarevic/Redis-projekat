@@ -3,6 +3,7 @@ import { useRef, useState, useEffect, useContext } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import axios from 'axios';
 import React from "react";
+
 import '../api/axios';
 
 const Login = () => {
@@ -18,16 +19,13 @@ const Login = () => {
     navigate("/Register");
   };
 
+  const handleEmailChange = (event) => {
+    setEmail(event.target.value);
+  };
 
-  useEffect(() => {
-    console.log('Email:', email);
-  }, [email]);
-
-  useEffect(() => {
-    console.log('Password:', password);
-   
-  }, [password]);
-
+  const handlePasswordChange = (event) => {
+    setPassword(event.target.value);
+  };
 
    const  LoginHandler = async (event) => {
     event.preventDefault();
@@ -43,19 +41,29 @@ const Login = () => {
 
     // Poziv funkcije koja šalje GET zahtev na server
     try {
-        const response = await axios.get(`http://127.0.0.1:5000/vratiKupca/${kupacId}`, {
+        const response = await axios.post('http://127.0.0.1:5000/login', {
+          email: email,
+          password: password
+        }, {
           headers: {
             'Content-Type': 'application/json'
             // Dodajte dodatne zaglavlja ako su potrebna (npr. autorizacija)
           }
         });
     
-        // Obrada odgovora od servera (response.data sadrži podatke koji su poslati)
-        console.log('Podaci o kupcu:', response.data);
-        // Ovde možete izvršiti operacije na dobijenim podacima
+        // Obrada odgovora od servera
+        console.log('Poruka o uspešnoj prijavi:', response.data.message);
+        // Ovde možete izvršiti operacije nakon uspešne prijave
+        // ovde ide navigate
+        // Na primer, preusmerite korisnika na drugu stranicu nakon uspešne prijave
+         navigate("/Home");
+         
+        
+        return response.data; // Vratite odgovor sa servera ili neki drugi podatak koji vam je potreban
       } catch (error) {
         // Uhvatite i obradite grešku ako se desi
-        console.error('Došlo je do greške:', error);
+        console.error('Došlo je do greške prilikom prijave:', error);
+        throw error; // Možete proslediti grešku dalje radi obrade ili prikaza korisniku
       }
 
     // Prikaz vrednosti iz stanja (radi provere)
@@ -78,14 +86,18 @@ const Login = () => {
             type="email"
             placeholder="Enter email"
             className="inpt"
+            value={email}
             ref={emailRef}
+            onChange={handleEmailChange}
             required
           />
           <input
             type="password"
             placeholder="Enter password"
             className="inpt"
+            value={password}
             ref={passwordRef}
+            onChange={handlePasswordChange}
             required
           />
           <div className="rem-forgot">

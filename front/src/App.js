@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import "./App.css";
 
 import Login from "./Login/login";
+import Home from "./Home/home"
 import Register from "./Register/register";
 
 function App() {
@@ -19,6 +20,8 @@ function App() {
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/Register" element={<Register />} />
+        <Route path="/Home" element={<Home />} />
+
 
         {/* Dodajte ostale rute ovde */}
       </Routes>
