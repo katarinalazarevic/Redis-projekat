@@ -279,7 +279,7 @@ def register():
     new_user = Kupac(ime=ime, prezime=prezime, email=email, password_hash=password_hash, ulica=ulica, grad=grad, broj=broj)
     db_session.add(new_user)
     db_session.commit()
-    return jsonify({'message': 'Registracija uspešna'}), 201
+    return jsonify({'message': 'SUCCESS'}), 201
 
 
 

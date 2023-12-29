@@ -1,5 +1,6 @@
 import React from 'react';
 import './product.css';
+
 import Home from '../Home/home';
 
 const Product = ({ product , addToCart }) => {

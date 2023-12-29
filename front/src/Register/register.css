@@ -17,11 +17,11 @@ body{
     align-items: center;
 }
 
-#container{
+#containerregister{
     border: 2px solid white;
     border-radius: 10px;
     width: 320px;
-    height: 340px;
+    height: 560px;
     display: flex;
     flex-direction: column;
     justify-content: space-evenly;
