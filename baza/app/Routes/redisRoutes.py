@@ -175,14 +175,17 @@ def ucitaj_narednih_10():
         in: query
         type: integer
         description: Trenutna stranica
-        required: false
-        default: 2
+        required: true
+        
     responses:
       200:
         description: Lista sledećih 10 proizvoda.
     """
     # Dohvatanje informacija o trenutnoj stranici i broju proizvoda po stranici
-    stranica = request.args.get('stranica', default=2, type=int)
+    #stranica = request.args.get('stranica', type=int)
+    stranica = request.json.get('stranica')
+
+    #stranica+=stranica+1
     broj_proizvoda_po_stranici = 10
     redis_key=f'proizvodi_stranica_{stranica}'
     # Pokušaj prvo dohvatiti iz Redis hash-a

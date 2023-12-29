@@ -8,6 +8,8 @@ const Home = () => {
   const [proizvodi, setProizvodi] = useState([]);
   const [novih10,setNovih10]= useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showButton, setShowButton] = useState(true); // Postavite početno stanje flag-a na true ili false u zavisnosti od potrebe
+
   let brojStranice=1;
 
   useEffect(() => {
@@ -44,14 +46,18 @@ const Home = () => {
     try {
         const response = await axios.post('http://localhost:5000/ucitaj_narednih_10',
         {
-          stranica: currentPage
+          stranica: brojStranice
         });
-        console.log(brojStranice);
-        setNovih10(prevProducts => [...prevProducts, ...response.data.proizvodi]);
-        setCurrentPage(prevPage => prevPage + 1);
-        brojStranice = brojStranice + 1;
-        console.log(brojStranice)
-       //  brojStranice=brojStranice+1;
+        if (response.data.proizvodi.length > 0) {
+          setNovih10(prevProducts => [...prevProducts, ...response.data.proizvodi]);
+          //setNovih10(response.data.proizvodi);
+          setCurrentPage(prevPage => prevPage + 1);
+          brojStranice++;
+        } else {
+          console.log('Server je vratio praznu listu proizvoda.');
+          setShowButton(false);
+          // Možete ovde dodati logiku ili obaveštenje ako želite da se uradi nešto specifično
+        }
       } catch (error) {
         console.error('Došlo je do greške prilikom dohvatanja podataka:', error);
       }
@@ -65,9 +71,11 @@ const Home = () => {
       <Product key={productId} product={product} className="product-item" />
     ))}
   </div>
-  <div class="dugmeVidiJos btn-primary" > 
-    <button onClick={ucitajNova10}> Vidi Jos </button>
-  </div>
+  {showButton && ( // Provera da li treba prikazati dugme na osnovu vrednosti flag-a
+      <div className="dugmeVidiJos btn-primary">
+        <button onClick={ucitajNova10}>Vidi Još</button>
+      </div>
+    )}
     </section>
 
     

@@ -12,10 +12,10 @@ const Product = ({ product }) => {
       <div>
         <img src={product.picture}></img>
       </div>
-      <p>Category: {product.category}</p>
+      <p> {product.category}</p>
       <div class="product-info">
-      <p>Quantity: {product.quantity}</p>
-      <p>Discount: {product.discount}</p>
+      {/* <p> {product.quantity}</p>
+      <p> {product.discount}</p> */}
       </div>
       <div class="cta">
             <div class="price">{product.price} rsd  </div>
