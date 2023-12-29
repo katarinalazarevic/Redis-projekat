@@ -349,4 +349,4 @@ def login():
     if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
         return jsonify({'message': 'SUCCESS'}), 200
     else:
-        return jsonify({'message': 'Pogrešan email ili šifra'}), 401
+        return jsonify({'message': 'FALSE'}), 401
