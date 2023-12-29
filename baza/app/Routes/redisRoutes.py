@@ -1,4 +1,6 @@
+import datetime
 import json
+from sqlalchemy import or_
 import pickle
 from flask import Blueprint, jsonify, request
 from app.Models.modelsKatalog import Proizvod
@@ -6,49 +8,94 @@ from app.Models.modelsRedis import RedisService
 from flasgger import swag_from
 from sqlalchemy.orm import class_mapper
 from database import redis_client,db_session
+from datetime import datetime
 
 
 
 redis_routes = Blueprint('redis_routes', __name__)
 
-@redis_routes.route('/dodavanjeProizvodaUKorpu/<int:product_id>', methods=['GET'])
-def dodavanjeProizvodaUKorpu(product_id):
+# @redis_routes.route('/dodavanjeProizvodaUKorpu/<int:product_id>', methods=['GET'])
+# def dodavanjeProizvodaUKorpu(product_id):
+#    
+@redis_routes.route('/dodaj_u_korpu', methods=['POST'])
+def dodaj_u_korpu():
     """
-    Upisuje proizvod u Redis na temelju proslijeđenog ID-a.
+    Dodaje proizvode u korpu korisnika.
 
     ---
     parameters:
-      - in: path
-        name: product_id
-        schema:
-          type: integer
+      - in: formData
+        name: korisnik_id
+        type: integer
         required: true
-        description: ID proizvoda koji se upisuje u Redis
+        description: ID korisnika
+      - in: formData
+        name: proizvodi_id
+        type: string
+        required: true
+        description: String koji sadrži ID-jeve proizvoda razdvojene zarezom
+      
+      
+
     responses:
       200:
-        description: Uspješan upis proizvoda u Redis
+        description: Proizvodi uspešno dodati u korpu
       500:
-        description: Greška prilikom upisa proizvoda u Redis
+        description: Greška prilikom dodavanja proizvoda u korpu
     """
-    try:
-        proizvod = Proizvod.get_by_id(product_id)  
+    
+    korisnik_id = int(request.form['korisnik_id'])
+    proizvodi_id_str = request.form['proizvodi_id']
+        
+    # Razdvajanje stringa proizvodi_id po zarezu i konvertovanje u listu integera
+    proizvodi_id = [int(id) for id in proizvodi_id_str.split(',')]
+    print(proizvodi_id)
+    #trenutna_stranica = int(request.form['trenutna_stranica'])
 
-        if not proizvod:
-            return jsonify({'message': 'Proizvod sa traženim ID-om nije pronađen.'}), 404
+    # try:
+    kljuc_korpe = f'korpa_{korisnik_id}'
 
-        product_key = f'product:{product_id}'
+    # Dohvatanje svih atributa proizvoda iz Redis hash-a
+    atributi_proizvoda = [redis_client.hget(f'pocetni_proizvodi1', proizvod_id) for proizvod_id in proizvodi_id]
+    #return atributi_proizvoda
+    # Dodavanje proizvoda u korpu
+    for atributi_json in atributi_proizvoda:
+        if atributi_json:
+            atributi = json.loads(atributi_json.encode('utf-8'))
 
-        if redis_client.exists(product_key):
-            return jsonify({'message': 'Proizvod već postoji u Redisu.'}), 409
+            # Prilagodite ovo prema atributima koje želite dodati u korpu
+            proizvod_u_korpi = {
+                'id': atributi['id'],
+                'productDescription': atributi['productDescription'],
+                'producerName': atributi['producerName'],
+                'price': atributi['price'],
+                'picture': atributi['picture'],
+            }
 
-        product_name = proizvod.producerName
-        redis_client.set(product_key, product_name) #pretrazujemo redi po product_key
+            # Dodaj proizvod u korpu
+            if not redis_client.sismember(kljuc_korpe, atributi['id']):
+                    # Dodaj proizvod u korpu ako već nije u njoj
+                    redis_client.sadd(kljuc_korpe, json.dumps(proizvod_u_korpi))
 
-        redis_client.expire(product_key, 30)
+        return jsonify({'message': 'Proizvodi uspešno dodati u korpu'}), 200
+    #return nadjenproizvod  
 
-        return jsonify({'message': 'Proizvod uspešno upisan u Redis.'}), 200
-    except Exception as e:
-        return jsonify({'message': f'Greška prilikom upisa proizvoda u Redis: {str(e)}'}), 500
+        # if not proizvod:
+        #     return jsonify({'message': 'Proizvod sa traženim ID-om nije pronađen.'}), 404
+
+        # product_key = f'product:{product_id}'
+
+        # if redis_client.exists(product_key):
+        #     return jsonify({'message': 'Proizvod već postoji u Redisu.'}), 409
+
+        # product_name = proizvod.producerName
+        # redis_client.set(product_key, product_name) #pretrazujemo redi po product_key
+
+        # redis_client.expire(product_key, 30)
+
+        # return jsonify({'message': 'Proizvod uspešno upisan u Redis.'}), 200
+    # except Exception as e:
+    #     return jsonify({'message': f'Greška prilikom upisa proizvoda u Redis: {str(e)}'}), 500
 @redis_routes.route('/citanjeProzivodaIzKorpe/<int:produc_id>', methods=['GET'])
 def citanjeProzivodaIzKorpe(produc_id):
     """
@@ -150,21 +197,38 @@ def prvih_deset_proizvoda():
         description: Lista prvih 10 proizvoda.
     """
     redis_key = 'pocetni_proizvodi1'
-    cached_data=redis_client.get('pocetni_proizvodi1')
+    cached_data = redis_client.hgetall(redis_key)
+
     if cached_data:
         # Ako postoje, koristi keširane podatke
-        cached_data = json.loads(cached_data.encode('utf-8'))
-        # Prikazivanje podataka iz Redis-a, bez kreiranja novih instanci klase Proizvod
-        return jsonify({'proizvodi': [(proizvod['id'], proizvod) for proizvod in cached_data['proizvodi']]})
+        proizvodi = [json.loads(atributi.encode('utf-8')) for atributi in cached_data.values()]
+        return jsonify({'proizvodi': [(proizvod['id'], proizvod) for proizvod in proizvodi]})
 
     pocetni_proizvodi = Proizvod.query.limit(10).all()
 
-    # Keširanje podataka u Redis koristeći JSON
-    data_to_cache = json.dumps({'proizvodi': [proizvod.toDict() for proizvod in pocetni_proizvodi]}, default=str)
-    redis_client.set(redis_key, data_to_cache, ex=15)
-    response_data = {'proizvodi': [(proizvod.id, proizvod.toDict()) for proizvod in pocetni_proizvodi]}
+    # Keširanje podataka u Redis hash koristeći JSON
+    for proizvod in pocetni_proizvodi:
+        atributi_proizvoda = proizvod.toDict()
+        redis_client.hset(redis_key, proizvod.id, json.dumps(atributi_proizvoda, default=str))
 
+    response_data = {'proizvodi': [(proizvod.id, proizvod.toDict()) for proizvod in pocetni_proizvodi]}
     return jsonify(response_data)
+    # redis_key = 'pocetni_proizvodi1'
+    # cached_data=redis_client.get('pocetni_proizvodi1')
+    # if cached_data:
+    #     # Ako postoje, koristi keširane podatke
+    #     cached_data = json.loads(cached_data.encode('utf-8'))
+    #     # Prikazivanje podataka iz Redis-a, bez kreiranja novih instanci klase Proizvod
+    #     return jsonify({'proizvodi': [(proizvod['id'], proizvod) for proizvod in cached_data['proizvodi']]})
+
+    # pocetni_proizvodi = Proizvod.query.limit(10).all()
+
+    # # Keširanje podataka u Redis koristeći JSON
+    # data_to_cache = json.dumps({'proizvodi': [proizvod.toDict() for proizvod in pocetni_proizvodi]}, default=str)
+    # redis_client.set(redis_key, data_to_cache, ex=200)
+    # response_data = {'proizvodi': [(proizvod.id, proizvod.toDict()) for proizvod in pocetni_proizvodi]}
+
+    ##return jsonify(response_data)
 @redis_routes.route('/ucitaj_narednih_10', methods=['POST'])
 def ucitaj_narednih_10():
     """
@@ -183,13 +247,13 @@ def ucitaj_narednih_10():
     """
     # Dohvatanje informacija o trenutnoj stranici i broju proizvoda po stranici
     #stranica = request.args.get('stranica', type=int)
-    stranica = request.json.get('stranica')
+    stranica = request.args.get('stranica', type=int)
 
     #stranica+=stranica+1
     broj_proizvoda_po_stranici = 10
-    redis_key=f'proizvodi_stranica_{stranica}'
+    redis_key=f'pocetni_proizvodi{stranica}'
     # Pokušaj prvo dohvatiti iz Redis hash-a
-    cached_data=redis_client.get(f'proizvodi_stranica_{stranica}')
+    cached_data=redis_client.get(f'pocetni_proizvodi{stranica}')
     if cached_data:
         # Ako postoje, koristi keširane podatke
         cached_data = json.loads(cached_data.encode('utf-8'))
@@ -203,3 +267,80 @@ def ucitaj_narednih_10():
             response_data = {'proizvodi': [(proizvod.id, proizvod.toDict()) for proizvod in pocetni_proizvodi]}
 
             return jsonify(response_data)
+
+
+@redis_routes.route('/prikazi_akcijske_proizvode', methods=['GET'])
+def prikazi_akcijske_proizvode():
+    """
+    Prikazuje akcijske proizvode na osnovu dana u nedelji.
+    ---
+
+    responses:
+      200:
+        description: Akcijski proizvodi za dati dan.
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              proizvodjac:
+                type: string
+              popust:
+                type: integer
+              cena:
+                type: integer
+    """
+    danas_je = datetime.now().strftime('%A')  # 'Monday', 'Tuesday', ...
+    print(danas_je)
+    #danas_je='Monday'
+    akcijski_proizvodi = redis_client.get(danas_je)
+
+    if not akcijski_proizvodi:
+        # Ako podaci nisu u kešu, dohvatite proizvode iz baze podataka
+        if danas_je == 'Monday' or danas_je == 'Wednesday':
+            proizvodi_za_popust = db_session.query(Proizvod).filter(or_(Proizvod.category == 'Voce' )).all()
+            if proizvodi_za_popust:
+                for proizvod in proizvodi_za_popust:
+                    proizvod.oldPrice = proizvod.price
+                    proizvod.price = proizvod.price - (proizvod.price * proizvod.discount) / 100
+            # Konvertujte proizvode u format koji ćete vratiti kao odgovor
+                akcijski_proizvodi = [
+                    {"proizvodjac": proizvod.producerName,"opis":proizvod.productDescription, "popust": proizvod.discount, "novacena": proizvod.price,"staracena":proizvod.oldPrice}
+                    for proizvod in proizvodi_za_popust
+                ]
+        # Sačuvaj podatke u Redis keš
+                redis_client.set(danas_je, json.dumps(akcijski_proizvodi))
+        # Ažuriraj cene sa popustom za mleko i povrće ako je danas utorak
+        elif danas_je == 'Tuesday' or danas_je == 'Thursday':
+            proizvodi_za_popust = db_session.query(Proizvod).filter(or_(Proizvod.category == 'Mlecni proizvodi', Proizvod.category == 'Povrce')).all()
+            if proizvodi_za_popust:
+
+                for proizvod in proizvodi_za_popust:
+                    proizvod.oldPrice = proizvod.price
+                    proizvod.price = proizvod.price - (proizvod.price * proizvod.discount) / 100
+        # Konvertujte proizvode u format koji ćete vratiti kao odgovor
+                akcijski_proizvodi = [
+                    {"proizvodjac": proizvod.producerName,"opis":proizvod.productDescription, "popust": proizvod.discount, "novacena": proizvod.price,"staracena":proizvod.oldPrice}
+                    for proizvod in proizvodi_za_popust
+                ]
+
+        # Sačuvaj podatke u Redis keš
+                redis_client.set(danas_je, json.dumps(akcijski_proizvodi))
+        elif danas_je == 'Friday':
+            proizvodi_za_popust = db_session.query(Proizvod).filter(or_(Proizvod.category == 'Riba')).all()
+            if proizvodi_za_popust:
+
+                for proizvod in proizvodi_za_popust:
+                    proizvod.oldPrice = proizvod.price
+                    proizvod.price = proizvod.price - (proizvod.price * proizvod.discount) / 100
+        # Konvertujte proizvode u format koji ćete vratiti kao odgovor
+                akcijski_proizvodi = [
+                    {"proizvodjac": proizvod.producerName,"opis":proizvod.productDescription, "popust": proizvod.discount, "novacena": proizvod.price,"staracena":proizvod.oldPrice}
+                    for proizvod in proizvodi_za_popust
+                ]
+
+        # Sačuvaj podatke u Redis keš
+                redis_client.set(danas_je, json.dumps(akcijski_proizvodi))
+    else:
+        akcijski_proizvodi = json.loads(akcijski_proizvodi)
+    return jsonify(akcijski_proizvodi)
