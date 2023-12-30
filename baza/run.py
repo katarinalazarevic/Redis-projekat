@@ -3,17 +3,11 @@ from flasgger import Swagger
 from flask_cors import CORS
 from flask_restful import Api
 from app.CRUDKupci import azuriraj_kupca, obrisi_kupca
-#from  import kupac_routes
 from app.Routes.routesKupac import Kupac
-#from app.models import Probas
 from database import init_db, db_session, redis_client
 from app.Routes.routesKupac import kupac_routes
 from app.Routes.routesProduct import product_routes
 from app.Routes.redisRoutes import redis_routes
-
-#from kaca.redisRoutes import redis_routes1
-
-
 
 app1 = Flask(__name__)
 api=Api(app1)

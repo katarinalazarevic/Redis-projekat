@@ -78,24 +78,7 @@ def dodaj_u_korpu():
                     redis_client.sadd(kljuc_korpe, json.dumps(proizvod_u_korpi))
 
         return jsonify({'message': 'Proizvodi uspešno dodati u korpu'}), 200
-    #return nadjenproizvod  
-
-        # if not proizvod:
-        #     return jsonify({'message': 'Proizvod sa traženim ID-om nije pronađen.'}), 404
-
-        # product_key = f'product:{product_id}'
-
-        # if redis_client.exists(product_key):
-        #     return jsonify({'message': 'Proizvod već postoji u Redisu.'}), 409
-
-        # product_name = proizvod.producerName
-        # redis_client.set(product_key, product_name) #pretrazujemo redi po product_key
-
-        # redis_client.expire(product_key, 30)
-
-        # return jsonify({'message': 'Proizvod uspešno upisan u Redis.'}), 200
-    # except Exception as e:
-    #     return jsonify({'message': f'Greška prilikom upisa proizvoda u Redis: {str(e)}'}), 500
+    
 @redis_routes.route('/citanjeProzivodaIzKorpe/<int:produc_id>', methods=['GET'])
 def citanjeProzivodaIzKorpe(produc_id):
     """
@@ -213,22 +196,7 @@ def prvih_deset_proizvoda():
 
     response_data = {'proizvodi': [(proizvod.id, proizvod.toDict()) for proizvod in pocetni_proizvodi]}
     return jsonify(response_data)
-    # redis_key = 'pocetni_proizvodi1'
-    # cached_data=redis_client.get('pocetni_proizvodi1')
-    # if cached_data:
-    #     # Ako postoje, koristi keširane podatke
-    #     cached_data = json.loads(cached_data.encode('utf-8'))
-    #     # Prikazivanje podataka iz Redis-a, bez kreiranja novih instanci klase Proizvod
-    #     return jsonify({'proizvodi': [(proizvod['id'], proizvod) for proizvod in cached_data['proizvodi']]})
-
-    # pocetni_proizvodi = Proizvod.query.limit(10).all()
-
-    # # Keširanje podataka u Redis koristeći JSON
-    # data_to_cache = json.dumps({'proizvodi': [proizvod.toDict() for proizvod in pocetni_proizvodi]}, default=str)
-    # redis_client.set(redis_key, data_to_cache, ex=200)
-    # response_data = {'proizvodi': [(proizvod.id, proizvod.toDict()) for proizvod in pocetni_proizvodi]}
-
-    ##return jsonify(response_data)
+    
 @redis_routes.route('/ucitaj_narednih_10', methods=['POST'])
 def ucitaj_narednih_10():
     """

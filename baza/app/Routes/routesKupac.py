@@ -59,15 +59,6 @@ def create_kupac():
     return jsonify({'message': 'Kupac created successfully', 'kupac_id': new_kupac.id}),200
 
 
-
-# @kupac_routes.route('/vratiKupca/<int:kupac_id>', methods=['GET'])
-# def get_kupac(kupac_id):
-#     kupac = Kupac.get_by_id(kupac_id)
-#     if not kupac:
-#         return jsonify({'message': 'Kupac not found'}), 404
-
-#     return jsonify({'id': kupac.id, 'name': kupac.name, 'email': kupac.email})
-
 @kupac_routes.route('/vratiKupca/<int:kupac_id>', methods=['GET'])
 @swag_from({
     'parameters': [
@@ -280,25 +271,6 @@ def register():
     db_session.add(new_user)
     db_session.commit()
     return jsonify({'message': 'Registracija uspešna'}), 201
-
-
-
-
-# @kupac_routes.route('/login', methods=['POST'])
-# def login():
-#     data = request.get_json()
-#     email = data.get('email')
-#     password = data.get('password')
-#     if not email or not password:
-#         return jsonify({'message': 'Username and password are required'}), 401
-
-#     # Provera korisnika
-#     user =Kupac.query.filter_by(email=email).first()
-
-#     if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
-#         return jsonify({'message': 'Uspešna prijava'}), 200
-#     else:
-#         return jsonify({'message': 'Pogrešan email ili šifra'}), 401
 
 @kupac_routes.route('/login', methods=['POST'])
 @swag_from({
