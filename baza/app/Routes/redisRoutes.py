@@ -25,8 +25,8 @@ def dodaj_u_korpu():
     ---
     parameters:
       - in: formData
-        name: korisnik_id
-        type: integer
+        name: korisnik_email
+        type: string
         required: true
         description: ID korisnika
       - in: formData
@@ -44,21 +44,41 @@ def dodaj_u_korpu():
         description: Greška prilikom dodavanja proizvoda u korpu
     """
     
-    korisnik_id = int(request.form['korisnik_id'])
+    korisnik_id = None
+    korisnik_email = request.form.get('korisnik_email')    
     proizvodi_id_str = request.form['proizvodi_id']
-        
+    redis_key="user"
+    if not korisnik_email or not proizvodi_id_str:
+        return jsonify({'error': 'Nedostaju potrebni parametri.'}), 400
+    print(korisnik_email)
+    user_ids = redis_client.hkeys(redis_key)
+    print(user_ids)
+    for user_id in user_ids:
+        user_data_json = redis_client.hget(redis_key, user_id)
+        if user_data_json:
+            user_data = json.loads(user_data_json.encode('utf-8'))
+            print(f"Proveravam korisnika sa email-om: {user_data.get('email')}")
+            if user_data.get('email') == korisnik_email:
+                korisnik_id = user_id
+                break
+    #return (korisnik_id)
     # Razdvajanje stringa proizvodi_id po zarezu i konvertovanje u listu integera
     proizvodi_id = [int(id) for id in proizvodi_id_str.split(',')]
     print(proizvodi_id)
     #trenutna_stranica = int(request.form['trenutna_stranica'])
-
+    if korisnik_id is None:
+        return jsonify({'error': 'Korisnik nije pronađen.'}), 404
     # try:
     kljuc_korpe = f'korpa_{korisnik_id}'
 
     # Dohvatanje svih atributa proizvoda iz Redis hash-a
     atributi_proizvoda = [redis_client.hget(f'pocetni_proizvodi1', proizvod_id) for proizvod_id in proizvodi_id]
     #return atributi_proizvoda
+    if not atributi_proizvoda:
+        return jsonify({'message': 'Nema proizvoda u kesu'}), 400
+
     # Dodavanje proizvoda u korpu
+    print(atributi_proizvoda)
     for atributi_json in atributi_proizvoda:
         if atributi_json:
             atributi = json.loads(atributi_json.encode('utf-8'))
@@ -71,13 +91,20 @@ def dodaj_u_korpu():
                 'price': atributi['price'],
                 'picture': atributi['picture'],
             }
-
+            print(atributi['id'])
+            set_values = redis_client.smembers(kljuc_korpe)
+            atribut_id = atributi['id']
+            str_id = str(atribut_id)
+            print(f"Vrednost atributa 'id': {atribut_id}")
+            print(f"Set vrednosti u Redisu: {set_values}")
+            print(f"Da li {str_id} postoji u set-u? {'Da' if str_id in set_values else 'Ne'}")
             # Dodaj proizvod u korpu
-            if not redis_client.sismember(kljuc_korpe, atributi['id']):
-                    # Dodaj proizvod u korpu ako već nije u njoj
-                    redis_client.sadd(kljuc_korpe, json.dumps(proizvod_u_korpi))
+            redis_client.sadd(kljuc_korpe, json.dumps(proizvod_u_korpi))
+            
+    return jsonify({'message': 'Proizvodi uspešno dodati u korpu'}), 200
 
-        return jsonify({'message': 'Proizvodi uspešno dodati u korpu'}), 200
+
+                    
     
 @redis_routes.route('/citanjeProzivodaIzKorpe/<int:produc_id>', methods=['GET'])
 def citanjeProzivodaIzKorpe(produc_id):
