@@ -4,8 +4,11 @@ import { Navigate, useNavigate } from "react-router-dom";
 import axios from "axios";
 import React from "react";
 import ErrorModal from "../Error/ErrorModal";
+import UserContext from '../UserContext/UserContext';
 import Failure from "../images/cancel.png";
 import Succes1 from "../images/check.png";
+import { AuthContext } from "../UserContext/UserContext";
+
 
 import "../api/axios";
 
@@ -13,6 +16,10 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  
+  const authCtx = useContext(AuthContext); //sluzi za prosledjivanje 
+
 
   const [error, setError] = useState(false);
   const [errMsg, setErrMsg] = useState("");
@@ -70,8 +77,9 @@ const Login = () => {
       if (response.status === 200) {
         if (response.data.message === "SUCCESS") {
           console.log("Poruka o uspešnoj prijavi:", response.data.message);
-          navigate("/Home");
-          return response.data;
+          //setEmail(email); // Postavljanje emaila u stanje
+          authCtx.login('dummy-token', email);
+          return navigate("/Home");
         } else {
           console.log(
             "Neuspešna prijava! Status kod 200, ali prijava neuspešna."
@@ -100,6 +108,7 @@ const Login = () => {
   };
 
   return (
+    
     <div>
       {error && (
         <ErrorModal
@@ -156,6 +165,7 @@ const Login = () => {
         </div>
       </div>
     </div>
+  
   );
 };
 
