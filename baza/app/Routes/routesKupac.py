@@ -1,8 +1,9 @@
 
+import json
 from flask import app, jsonify, request
 from app.Models.modelsKupac import Kupac
 from flask import Blueprint
-from database import db_session
+from database import db_session,redis_client
 from flasgger import swag_from
 from flask_restful import Resource, Api, reqparse
 #from run import api
@@ -319,6 +320,11 @@ def login():
     user = Kupac.query.filter_by(email=email).first()
 
     if user and bcrypt.checkpw(password.encode('utf-8'), user.password_hash.encode('utf-8')):
+        redis_key = f"user"
+        user_data_json = json.dumps({'email': user.email, 'id': user.id})
+
+        redis_client.hset(redis_key,user.id, user_data_json)
+        redis_client.expire(redis_key, 900)  # Ističe nakon 15 minuta (900 sekundi)
         return jsonify({'message': 'SUCCESS'}), 200
     else:
         return jsonify({'message': 'FALSE'}), 401
