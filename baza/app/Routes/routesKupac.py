@@ -324,7 +324,7 @@ def login():
         user_data_json = json.dumps({'email': user.email, 'id': user.id})
 
         redis_client.hset(redis_key,user.id, user_data_json)
-        redis_client.expire(redis_key, 900)  # Ističe nakon 15 minuta (900 sekundi)
+        #redis_client.expire(redis_key, 900)  # Ističe nakon 15 minuta (900 sekundi)
         return jsonify({'message': 'SUCCESS'}), 200
     else:
         return jsonify({'message': 'FALSE'}), 401

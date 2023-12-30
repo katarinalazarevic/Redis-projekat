@@ -6,7 +6,7 @@ from app.CRUDKupci import azuriraj_kupca, obrisi_kupca
 from app.Routes.routesKupac import Kupac
 from database import init_db, db_session, redis_client
 from app.Routes.routesKupac import kupac_routes
-from app.Routes.routesProduct import product_routes
+from app.Routes.routesProduct import product_routes,ucitajProizvode
 from app.Routes.redisRoutes import redis_routes
 
 app1 = Flask(__name__)
@@ -18,6 +18,9 @@ app1.register_blueprint(product_routes)
 app1.register_blueprint(redis_routes)
 # app1.register_blueprint(redis_routes1)
 init_db()
+ucitajProizvode()
+
+
 @app1.route("/")
 def home():
     return ('proba.html')

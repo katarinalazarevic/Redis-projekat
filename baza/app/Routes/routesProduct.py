@@ -1,8 +1,9 @@
+import json
 from flask import app, jsonify, request
 from app.Models.modelsKatalog import Proizvod
 from app.Models.modelsKupac import Kupac
 from flask import Blueprint
-from database import db_session
+from database import db_session,redis_client
 from flasgger import swag_from
 
 product_routes = Blueprint('product_routes', __name__)
@@ -63,6 +64,22 @@ def get_products():
         })
 
     return jsonify({'proizvodi': proizvodi_lista})
+
+def ucitajProizvode():
+    proizvodi_iz_baze = db_session.query(Proizvod).all()
+    for proizvod in proizvodi_iz_baze:
+        redis_key = f'proizvodi'
+        proizvod_data = {
+            'producerName': proizvod.producerName,
+            'productDescription': proizvod.productDescription,
+            'category': proizvod.category,
+            'price': proizvod.price,
+            'discount': proizvod.discount,
+            'quantity': proizvod.quantity
+        }
+        atributi_proizvoda = proizvod.toDict()
+        redis_client.hset(redis_key, proizvod.id, json.dumps(atributi_proizvoda, default=str))
+        
 
 @product_routes.route('/dodajProizvod', methods=['POST'])
 @swag_from({
