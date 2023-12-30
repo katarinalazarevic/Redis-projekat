@@ -1,15 +1,22 @@
 import "./login.css";
 import { useRef, useState, useEffect, useContext } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import axios from 'axios';
+import axios from "axios";
 import React from "react";
+import ErrorModal from "../Error/ErrorModal";
+import Failure from "../images/cancel.png";
+import Succes1 from "../images/check.png";
 
-import '../api/axios';
+import "../api/axios";
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const [error, setError] = useState(false);
+  const [errMsg, setErrMsg] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
@@ -27,13 +34,16 @@ const Login = () => {
     setPassword(event.target.value);
   };
 
-   const  LoginHandler = async (event) => {
+  const errorHandler = () => {
+    setError(null);
+  };
+
+  const LoginHandler = async (event) => {
     event.preventDefault();
     // Dobijanje vrednosti iz ref objekata
     const emailValue = emailRef.current.value;
     const passwordValue = passwordRef.current.value;
 
-    
     setEmail(emailValue);
     setPassword(passwordValue);
 
@@ -41,85 +51,109 @@ const Login = () => {
 
     // Poziv funkcije koja šalje GET zahtev na server
     try {
-        const response = await axios.post('http://127.0.0.1:5000/login', {
+      const response = await axios.post(
+        "http://127.0.0.1:5000/login",
+        {
           email: email,
-          password: password
-        }, {
+          password: password,
+        },
+        {
           headers: {
-            'Content-Type': 'application/json'
+            "Content-Type": "application/json",
             // Dodajte dodatne zaglavlja ako su potrebna (npr. autorizacija)
-          }
-        });
-    
-        // Obrada odgovora od servera
-        console.log('Poruka o uspešnoj prijavi:', response.data.message);
-        // Ovde možete izvršiti operacije nakon uspešne prijave
-        // ovde ide navigate
-        // Na primer, preusmerite korisnika na drugu stranicu nakon uspešne prijave
-         navigate("/Home");
-         
-        
-        return response.data; // Vratite odgovor sa servera ili neki drugi podatak koji vam je potreban
-      } catch (error) {
-        // Uhvatite i obradite grešku ako se desi
-        console.error('Došlo je do greške prilikom prijave:', error);
-        throw error; // Možete proslediti grešku dalje radi obrade ili prikaza korisniku
-      }
+          },
+        }
+      );
 
-    // Prikaz vrednosti iz stanja (radi provere)
-   
+      console.log(response);
+
+      if (response.status === 200) {
+        if (response.data.message === "SUCCESS") {
+          console.log("Poruka o uspešnoj prijavi:", response.data.message);
+          navigate("/Home");
+          return response.data;
+        } else {
+          console.log(
+            "Neuspešna prijava! Status kod 200, ali prijava neuspešna."
+          );
+          window.confirm("Neuspešna prijava!");
+         
+        }
+      } else {
+        console.log("Neuspešna prijava! Status kod nije 200.");
+        window.confirm("Neuspešna prijava!");
+       
+      }
+    } catch (error) {
+      // Uhvatite i obradite grešku ako se desi, ovo se odnosi na greške koje nisu vezane za statusni kod odgovora (npr. problem sa mrežom, itd.)
+      console.error("Došlo je do greške prilikom prijave:", error);
+      window.confirm("Neuspešna prijava!");
+    
+    }
+    
   };
 
-  const stampajVrednosti= (event)=>
-  {
+  const stampajVrednosti = (event) => {
     event.preventDefault();
     console.log("Email:", email);
     console.log("Password:", password);
-  }
+  };
 
   return (
-    <div id="algn">
-      <div id="container">
-        <p className="head">Login</p>
-        <form action="/" className="input-container">
-          <input
-            type="email"
-            placeholder="Enter email"
-            className="inpt"
-            value={email}
-            ref={emailRef}
-            onChange={handleEmailChange}
-            required
-          />
-          <input
-            type="password"
-            placeholder="Enter password"
-            className="inpt"
-            value={password}
-            ref={passwordRef}
-            onChange={handlePasswordChange}
-            required
-          />
-          <div className="rem-forgot">
-            <div className="rem">
-              <input type="checkbox" id="rem-tik" />
-              <label htmlFor="rem-tik">Remember me</label>
+    <div>
+      {error && (
+        <ErrorModal
+          title={error.title}
+          message={error.message}
+          slika={error.slika}
+          ugasiProzor={errorHandler}
+        />
+      )}
+      <div id="algn">
+        <div id="container">
+          <p className="head">Login</p>
+          <form action="/" className="input-container">
+            <input
+              type="email"
+              placeholder="Enter email"
+              className="inpt"
+              value={email}
+              ref={emailRef}
+              onChange={handleEmailChange}
+              required
+            />
+            <input
+              type="password"
+              placeholder="Enter password"
+              className="inpt"
+              value={password}
+              ref={passwordRef}
+              onChange={handlePasswordChange}
+              required
+            />
+            <div className="rem-forgot">
+              <div className="rem">
+                <input type="checkbox" id="rem-tik" />
+                <label htmlFor="rem-tik">Remember me</label>
+              </div>
+              <span>
+                <a href="#" onClick={stampajVrednosti}>
+                  Forgot password
+                </a>
+              </span>
             </div>
-            <span>
-              <a href="#" onClick={stampajVrednosti}>Forgot password</a>
-            </span>
-          </div>
-          <button type="submit" className="btn" onClick={LoginHandler}>
-            Login
-          </button>
-        </form>
-        <p className="footer">
-          Don't have account?{" "}
-          <a href="#" onClick={handleRegisterClick}>
-            {" "}
-            Register
-          </a>
-        </p>
+            <button type="submit" className="btn" onClick={LoginHandler}>
+              Login
+            </button>
+          </form>
+          <p className="footer">
+            Don't have account?{" "}
+            <a href="#" onClick={handleRegisterClick}>
+              {" "}
+              Register
+            </a>
+          </p>
+        </div>
       </div>
     </div>
   );

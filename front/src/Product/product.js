@@ -1,7 +1,13 @@
 import React from 'react';
 import './product.css';
 
-const Product = ({ product }) => {
+import Home from '../Home/home';
+
+const Product = ({ product , addToCart }) => {
+
+ 
+
+ 
   return (
     <div className="product">
      
@@ -19,7 +25,8 @@ const Product = ({ product }) => {
       </div>
       <div class="cta">
             <div class="price">{product.price} rsd  </div>
-            <button class="btn">Add to cart<span class="bg"></span></button>
+            {/* <button class="btn" onClick={addToCard}>Add to cart<span class="bg"></span></button> */}
+            <button className="btn" onClick={() => addToCart(product.id)}>Add to cart</button>
         </div>
 
     </div>
