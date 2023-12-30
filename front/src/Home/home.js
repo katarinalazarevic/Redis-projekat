@@ -1,11 +1,18 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState,useContext} from "react";
 import './home.css';
 import axios from 'axios';
 import Product from "../Product/product";
 import ShoppingCart from "../Cart/cart";
 
+ // Prilagodite putanju do vašeg UserContext fajla
+import { useAuth } from '../UserContext/UserContext';
+
+
+
 
 const Home = ( {data}) => {
+  const { username } = useAuth();  // prima podatke iz login
+
   const [proizvodi, setProizvodi] = useState([]);
   const [novih10,setNovih10]= useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -16,7 +23,7 @@ const Home = ( {data}) => {
   const [productsForCard, setProductsForCard] = useState([]);
 
   //let brojStranice=1;
-
+  console.log('Email korisnika:', username);
   useEffect(() => {
     const fetchProizvodi = async () => {
       try {
@@ -26,7 +33,7 @@ const Home = ( {data}) => {
         console.error('Došlo je do greške prilikom dohvatanja podataka:', error);
       }
     };
-    console.log(data)
+   
     fetchProizvodi();
   }, []);
 

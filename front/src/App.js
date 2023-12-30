@@ -1,7 +1,7 @@
 import logo from "./logo.svg";
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-
+import { AuthContextProvider } from './UserContext/UserContext';
 import "./App.css";
 
 import Login from "./Login/login";
@@ -11,6 +11,8 @@ import Navbar from "./Navbar/navbar";
 
 function App() {
   return (
+    <AuthContextProvider>
+
     <Router>
       {/* Postavite svoj navbar iznad ruta kako biste ga prikazali na svakoj stranici */}
       
@@ -23,6 +25,7 @@ function App() {
         {/* Dodajte ostale rute ovde */}
       </Routes>
     </Router>
+    </AuthContextProvider>
   );
 }
 
