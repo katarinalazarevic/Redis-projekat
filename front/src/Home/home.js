@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext, useReducer } from "react";
 import "./home.css";
 import axios from "axios";
 import Product from "../Product/product";
@@ -20,6 +20,7 @@ const Home = ({ data }) => {
   const [brojStranice, setBrojStranice] = useState(1);
   const [prikaziKorpu, setPrikaziKorpu] = useState(false);
   const [akcijski, setAkcijski] = useState(false);
+  const [reducerValue,forceUpdate]=useReducer(x=>x+1,0);
 
 
   let [productsForCard, setProductsForCard] = useState([]);
@@ -28,7 +29,7 @@ const Home = ({ data }) => {
 
   useEffect(() => {
     console.log('Niz proizvoda za korpu:', productsForCard);
-    
+    setPrikaziKorpu(true);
   }, [productsForCard]);
 
   const KorpaHandler = () => {
@@ -67,6 +68,8 @@ const Home = ({ data }) => {
     }
   };
 
+  
+
   const ocistiKorpu = () => {
     setProductsForCard([]);
    
@@ -79,6 +82,7 @@ const Home = ({ data }) => {
       return; // Prekida se izvršavanje funkcije jer proizvod već postoji u korpi
     }
     productsForCard=[...productsForCard, productId];
+    setProductsForCard(productsForCard);
    const p= productId+"";
    console.log(p);
    
@@ -102,6 +106,7 @@ const Home = ({ data }) => {
       if (response.status === 200) {
         console.log("Proizvodi uspešno dodati u korpu");
         setPrikaziKorpu(true);
+       
         // Dodatna logika nakon uspešnog dodavanja u korpu
       } else {
         console.log("Greška prilikom dodavanja proizvoda u korpu");
@@ -120,8 +125,8 @@ const Home = ({ data }) => {
   return (
     <>
       <div class="akcijskiProizvodi">
-        <Navbar productsForCard={[1, 2, 3]} akcijskiProizvodi={akcijski} />
-        <h1>Akcijski proizvodi</h1>
+        <Navbar productsForCard={productsForCard} akcijskiProizvodi={akcijski} addToCart={addToCart} usernameKorisnika={username} />
+        <h1>Svi proizvodi</h1>
         <section className="sg-products">
           {/* ... */}
           <div className="product-grid">
@@ -132,15 +137,14 @@ const Home = ({ data }) => {
                 addToCart={addToCart}
               />
             ))}
-            {prikaziKorpu && (
-              <Cart usernameKorisnika={username}>
-                {" "}
-                ocistiKorpu={ocistiKorpu}{" "}
-              </Cart>
-            )}
+            {/* {prikaziKorpu && (
+               <Cart usernameKorisnika={username} productsForCard={productsForCard} ocistiKorpu={ocistiKorpu}
+                  
+                />
+            )} */}
           </div>
-          <button onClick={ocistiKorpu}> Ocisti korpu </button>
-          <button onClick={KorpaHandler}> Prikazi Korpu</button>
+          {/* <button onClick={ocistiKorpu}> Ocisti korpu </button>
+          <button onClick={KorpaHandler}> Prikazi Korpu</button> */}
           {showButton ? ( // Provera da li treba prikazati dugme na osnovu vrednosti flag-a
             <div className="dugmeVidiJos btn-primary">
               <button onClick={handleClick}>Prikaži proizvode</button>

@@ -199,7 +199,7 @@ def as_dict(obj):
 
     
     #@redis_routes.route('/products_by_category', methods=['GET'])
-@redis_routes.route('/products_by_category', methods=['GET'])
+@redis_routes.route('/products_by_category', methods=['POST'])
 @swag_from({
     'parameters': [
         {
@@ -242,9 +242,13 @@ def as_dict(obj):
     }
 })
 def get_products_by_category():
-    category = request.args.get('category')
+    data= request.get_json()
+    category=data.get('category')
+   # print(kategorija)
+    #category = request.json.get('category')
     #category = data.get('category')
     # Provera da li postoji hash za datu kategoriju u Redisu
+    print(category)
     hash_key = f'category:{category}' #po kategoriji
     kljuc='proizvodi'
     if redis_client.exists(hash_key):
@@ -376,7 +380,7 @@ def prikazi_akcijske_proizvode():
                         "productDescription": proizvod[1]['productDescription'],
                         "discount": proizvod[1]['discount'],
                         "novacena": proizvod[1]['price'],
-                        "staracena": proizvod[1]['oldPrice']
+                        "price": proizvod[1]['oldPrice']
                     }
                     for proizvod in proizvodi_za_popust
                 ]
@@ -403,7 +407,7 @@ def prikazi_akcijske_proizvode():
                         "productDescription": proizvod[1]['productDescription'],
                         "discount": proizvod[1]['discount'],
                         "novacena": proizvod[1]['price'],
-                        "staracena": proizvod[1]['oldPrice']
+                        "price": proizvod[1]['oldPrice']
                     }
                     for proizvod in proizvodi_za_popust
                 ]
@@ -430,7 +434,7 @@ def prikazi_akcijske_proizvode():
                         "productDescription": proizvod[1]['productDescription'],
                         "discount": proizvod[1]['discount'],
                         "novacena": proizvod[1]['price'],
-                        "staracena": proizvod[1]['oldPrice']
+                        "price": proizvod[1]['oldPrice']
                     }
                     for proizvod in proizvodi_za_popust
                 ]
@@ -618,3 +622,8 @@ def vratiKategorije():
             return categories, 200
         else:
             return jsonify({"error": "Nema proizvoda u Redisu."}),404
+        
+
+def syncredisandgres():
+    datafromredis=redis_client.hgetall('proizvodi')
+    Proizvod.updateMainDB(datafromredis)

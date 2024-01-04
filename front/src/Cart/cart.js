@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import axios from "axios";
 import Product from "../Product/product";
 import ProizvodUKorpi from "../ProizvodUKorpi/proizvodUKorpi";
 
-const ShoppingCart = ({ usernameKorisnika,ocistiKorpu }) => {
+const ShoppingCart = ({ usernameKorisnika,ocistiKorpu ,productsForCard}) => {
   const [proizvodi, setProizvodi] = useState([]);
+ 
+
+  useEffect( ()=>
+  {
+    console.log('Promena u proizvodima za korpu:', productsForCard);
+  },[productsForCard]);
 
   useEffect(() => {
    // Poziv metode za prikaz proizvoda u korpi

@@ -73,3 +73,68 @@
   text-align: center; /* Poravnanje teksta u centar */
 }
 
+
+
+.dropbtn {
+  background-color: #4CAF50; /* Boja bez providnosti */
+  color: white;
+  padding: 16px;
+  font-size: 16px;
+  border: none;
+  cursor: pointer;
+  opacity: 0.5; /* Providnost elementa (providnost 50%) */
+}
+
+
+/* The container <div> - needed to position the dropdown content */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+/* Dropdown Content (Hidden by Default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* Links inside the dropdown */
+.dropdown-content a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+/* Change color of dropdown links on hover */
+.dropdown-content a:hover {background-color: #f1f1f1}
+
+/* Show the dropdown menu on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Change the background color of the dropdown button when the dropdown content is shown */
+.dropdown:hover .dropbtn {
+  background-color: #3e8e41;
+}
+
+
+.proizvodi-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between; /* Da rasporedi proizvode ravnomerno */
+}
+
+.proizvod-wrapper {
+  width: calc(20% - 10px); /* Širina jednog proizvoda (20% sa malim razmakom) */
+  margin-bottom: 20px; /* Razmak između redova */
+}
+.proizvodi-container {
+  
+  justify-content: center;
+}
