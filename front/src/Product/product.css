@@ -68,4 +68,10 @@
     border: 1px solid #FF3100;
     border-radius: 20px;
     overflow: hidden;
+
+    transition: all .3s ease-in-out;
+  }
+  .btn:hover {
+    color: white; /* Boja teksta na hover */
+    background-color: #FF3100; /* Boja pozadine na hover */
   }

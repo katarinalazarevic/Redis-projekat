@@ -1,3 +1,5 @@
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 import logo from "./logo.svg";
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
@@ -12,7 +14,7 @@ import Navbar from "./Navbar/navbar";
 function App() {
   return (
     <AuthContextProvider>
-
+     
     <Router>
       {/* Postavite svoj navbar iznad ruta kako biste ga prikazali na svakoj stranici */}
       
@@ -21,7 +23,7 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/Register" element={<Register />} />
         <Route path="/Home" element={<Home />} />
-        {/* <Route path="/Navbar" element={<Navbar />} /> */}
+        { <Route path="/Navbar" element={<Navbar />} /> }
         {/* Dodajte ostale rute ovde */}
       </Routes>
     </Router>

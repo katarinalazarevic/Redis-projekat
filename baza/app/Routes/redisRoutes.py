@@ -44,11 +44,17 @@ def dodaj_u_korpu():
         description: Greška prilikom dodavanja proizvoda u korpu
     """
     
+    print(request.form)
     korisnik_id = None
-    korisnik_email = request.form.get('korisnik_email')    
-    proizvodi_id_str = request.form['proizvodi_id']
+    korisnik_email = request.json.get('korisnik_email')    
+    proizvodi_id = request.json['proizvodi_id']
+
+    print(f"Korisnik email: {korisnik_email}")
+    print(f"Proizvodi ID: {proizvodi_id}")
+
+
     redis_key="user"
-    if not korisnik_email or not proizvodi_id_str:
+    if not korisnik_email or not proizvodi_id:
         return jsonify({'error': 'Nedostaju potrebni parametri.'}), 400
     
     user_ids = redis_client.hkeys(redis_key)
@@ -63,7 +69,7 @@ def dodaj_u_korpu():
                 break
     #return (korisnik_id)
     # Razdvajanje stringa proizvodi_id po zarezu i konvertovanje u listu integera
-    proizvodi_id = [int(id) for id in proizvodi_id_str.split(',')]
+    #proizvodi_id = [int(id) for id in proizvodi_id_str.split(',')]
     
     #trenutna_stranica = int(request.form['trenutna_stranica'])
     if korisnik_id is None:
@@ -72,17 +78,17 @@ def dodaj_u_korpu():
     kljuc_korpe = f'korpa_{korisnik_id}'
 
     # Dohvatanje svih atributa proizvoda iz Redis hash-a
-    atributi_proizvoda = [redis_client.hget(f'pocetni_proizvodi1', proizvod_id) for proizvod_id in proizvodi_id]
+    atributi_proizvoda = [redis_client.hget(f'proizvodi', proizvodi_id)]
     #return atributi_proizvoda
     if not atributi_proizvoda:
         return jsonify({'message': 'Nema proizvoda u kesu'}), 400
-
+    print(atributi_proizvoda)
     # Dodavanje proizvoda u korpu
     
     for atributi_json in atributi_proizvoda:
         if atributi_json:
             atributi = json.loads(atributi_json.encode('utf-8'))
-
+            print("Usao sam")
             # Prilagodite ovo prema atributima koje želite dodati u korpu
             proizvod_u_korpi = {
                 'id': atributi['id'],
@@ -113,7 +119,7 @@ def kupi_proizvode():
         description: Poruka o uspešnoj kupovini.
     """
     korisnik_id = None
-    korisnik_email = request.args.get('korisnik_email') 
+    korisnik_email = request.json.get('korisnik_email') 
     print(korisnik_email)
     redis_key="user"
     
@@ -240,27 +246,25 @@ def get_products_by_category():
     #category = data.get('category')
     # Provera da li postoji hash za datu kategoriju u Redisu
     hash_key = f'category:{category}' #po kategoriji
+    kljuc='proizvodi'
     if redis_client.exists(hash_key):
         # Ako postoji hash, čitamo vrednosti i vraćamo ih kao listu
         products_json = redis_client.hvals(hash_key)
         return [json.loads(product) for product in products_json]
     else:
-        # Ako ne postoji hash, izvršavamo upit u PostgreSQL bazi
-        products = db_session.query(Proizvod).filter(Proizvod.category == category).all()
-        # Konvertujemo rezultat u listu JSON objekata
-        for product in products:
-            product_dict = as_dict(product)
-            redis_client.hset(hash_key, product_dict['id'], json.dumps(product_dict))
-        # Povratni podaci
-        return [json.loads(product) for product in redis_client.hvals(hash_key)]
+        all_products_json = redis_client.hgetall(kljuc)
+        matching_products = [json.loads(product) for product in all_products_json.values() if json.loads(product).get('category') == category]
+        for product in matching_products:
+            redis_client.hset(hash_key, product['id'], json.dumps(product))
+        return matching_products
     
-@redis_routes.route('/ucitavajPo10Proizvoda', methods=['POST'])
-def prvih_deset_proizvoda():
+@redis_routes.route('/ucitavajPo10Proizvoda/<int:brojStranice>', methods=['GET'])
+def prvih_deset_proizvoda(brojStranice):
     """
     Prikazuje prvih 10 proizvoda.
     ---
     parameters:
-      - name: stranica
+        name: stranica1
         in: query
         type: integer
         description: Trenutna stranica
@@ -269,14 +273,17 @@ def prvih_deset_proizvoda():
       200:
         description: Lista prvih 10 proizvoda.
     """
+    
     redis_key = 'proizvodi'
-    redis_key_akcija = 'Tuesday'#datetime.now().strftime('%A')  # Ključ za akcijske proizvode (npr. 'Monday')
+    redis_key_akcija =datetime.now().strftime('%A')  # Ključ za akcijske proizvode (npr. 'Monday')
+
 
     # Dohvati podatke iz Redis keša
     cached_data_proizvodi = redis_client.hvals(redis_key)
     cached_data_akcija = redis_client.get(redis_key_akcija)
     #cached_data = redis_client.hvals(redis_key)
-    stranica = request.args.get('stranica', type=int)
+    #stranica = request.args.get('stranica', type=int)
+    stranica=brojStranice
     broj_proizvoda_po_stranici = 10
     x=(stranica-1)*broj_proizvoda_po_stranici
     y=x+broj_proizvoda_po_stranici
@@ -331,6 +338,7 @@ def prikazi_akcijske_proizvode():
               cena:
                 type: integer
     """
+    
     danas_je = datetime.now().strftime('%A')  # 'Monday', 'Tuesday', ...
     print(danas_je)
     #danas_je='Tuesday'
@@ -364,9 +372,9 @@ def prikazi_akcijske_proizvode():
                 akcijski_proizvodi = [
                     {
                         "id":proizvod[1]['id'],
-                        "proizvodjac": proizvod[1]['producerName'],
-                        "opis": proizvod[1]['productDescription'],
-                        "popust": proizvod[1]['discount'],
+                        "producerName": proizvod[1]['producerName'],
+                        "productDescription": proizvod[1]['productDescription'],
+                        "discount": proizvod[1]['discount'],
                         "novacena": proizvod[1]['price'],
                         "staracena": proizvod[1]['oldPrice']
                     }
@@ -389,11 +397,11 @@ def prikazi_akcijske_proizvode():
                     proizvod[1]['price'] = proizvod[1]['price'] - (proizvod[1]['price'] * proizvod[1]['discount']) / 100
                 
                 akcijski_proizvodi = [
-                    {
+                     {
                         "id":proizvod[1]['id'],
-                        "proizvodjac": proizvod[1]['producerName'],
-                        "opis": proizvod[1]['productDescription'],
-                        "popust": proizvod[1]['discount'],
+                        "producerName": proizvod[1]['producerName'],
+                        "productDescription": proizvod[1]['productDescription'],
+                        "discount": proizvod[1]['discount'],
                         "novacena": proizvod[1]['price'],
                         "staracena": proizvod[1]['oldPrice']
                     }
@@ -416,11 +424,11 @@ def prikazi_akcijske_proizvode():
                     proizvod[1]['price'] = proizvod[1]['price'] - (proizvod[1]['price'] * proizvod[1]['discount']) / 100
                 
                 akcijski_proizvodi = [
-                    {
+                     {
                         "id":proizvod[1]['id'],
-                        "proizvodjac": proizvod[1]['producerName'],
-                        "opis": proizvod[1]['productDescription'],
-                        "popust": proizvod[1]['discount'],
+                        "producerName": proizvod[1]['producerName'],
+                        "productDescription": proizvod[1]['productDescription'],
+                        "discount": proizvod[1]['discount'],
                         "novacena": proizvod[1]['price'],
                         "staracena": proizvod[1]['oldPrice']
                     }
@@ -431,3 +439,182 @@ def prikazi_akcijske_proizvode():
     else:
         akcijski_proizvodi = json.loads(akcijski_proizvodi)
     return jsonify(akcijski_proizvodi)
+
+
+
+@redis_routes.route('/prikaziProizvodeUKorpi',methods=['POST'])
+def prikaziProizvodeUKorpi():
+    """
+    Prikazuje proizvode u korpi korisnika.
+
+    ---
+    parameters:
+      - in: query
+        name: korisnik_email
+        type: string
+        required: true
+        description: Email korisnika
+
+    responses:
+      200:
+        description: Proizvodi u korpi
+      400:
+        description: Greška: Email korisnika nije prosleđen
+      500:
+        description: Interna server greška
+    """
+    try:
+        # Dobijanje emaila korisnika iz zahteva
+        data = request.get_json()
+        korisnik_id = None
+        #korisnik_email = request.args.get('korisnik_email')
+        korisnik_email = data.get('korisnik_email')    
+        #korisnik_email=emailKorisnika
+       
+        redis_key="user"
+        if not korisnik_email :
+            return jsonify({'error': 'Nedostaju potrebni parametri.'}), 400
+        
+        user_ids = redis_client.hkeys(redis_key)
+        
+        for user_id in user_ids:
+            user_data_json = redis_client.hget(redis_key, user_id)
+            if user_data_json:
+                user_data = json.loads(user_data_json.encode('utf-8'))
+                print(f"Proveravam korisnika sa email-om: {user_data.get('email')}")
+                if user_data.get('email') == korisnik_email:
+                    korisnik_id = user_id
+                    break
+
+        if not korisnik_id:
+            return jsonify({"error": "ID korisnika nije prosleđen."}), 400
+
+        # Formirajte ključ za Redis skup korpe korisnika
+        kljuc_korpe = f'korpa_{korisnik_id}'
+
+        # Dobijanje svih proizvoda u korpi iz Redis skupa
+        proizvodi_u_korpi = redis_client.smembers(kljuc_korpe)
+
+        # Konvertujte proizvode u listu radi lakše manipulacije
+        proizvodi_lista = list(proizvodi_u_korpi)
+
+        return [json.loads(product) for product in proizvodi_lista], 200
+
+    except Exception as e:
+        return jsonify({"error":str(e)}), 500
+                        
+
+
+@redis_routes.route('/obrisiProizvodIzKorpe', methods=['DELETE'])
+def obrisiProizvodIzKorpe():
+    """
+    Dodaje proizvode u korpu korisnika.
+
+    ---
+    parameters:
+      - in: formData
+        name: korisnik_email
+        type: string
+        required: true
+        description: ID korisnika
+      - in: formData
+        name: proizvod_id
+        type: string
+        required: true
+        description: String koji sadrži ID-jeve proizvoda razdvojene zarezom
+
+    responses:
+      200:
+        description: Proizvodi uspešno dodati u korpu
+      500:
+        description: Greška prilikom dodavanja proizvoda u korpu
+    """
+    korisnik_id = None
+    redis_key="user"
+    korisnik_email = request.json.get('korisnik_email')   
+    proizvodId= request.json.get('proizvod_id')
+
+    print(korisnik_email, proizvodId)
+
+    if not korisnik_email or not proizvodId:
+        return jsonify({'error': 'Nedostaju potrebni parametri.'}), 400
+    
+    user_ids = redis_client.hkeys(redis_key)
+    
+    for user_id in user_ids:
+        user_data_json = redis_client.hget(redis_key, user_id)
+        if user_data_json:
+            user_data = json.loads(user_data_json.encode('utf-8'))
+            print(f"Proveravam korisnika sa email-om: {user_data.get('email')}")
+            if user_data.get('email') == korisnik_email:
+                korisnik_id = user_id
+                break
+    if korisnik_id is None:
+        return jsonify({'error': 'Korisnik nije pronađen.'}), 404
+    # try:
+    kljuc_korpe = f'korpa_{korisnik_id}'
+    proizvodId_str = str(proizvodId)
+    print(proizvodId_str)
+    if redis_client.exists(kljuc_korpe):
+    # Čitamo članove hash mape kao rečnik
+        set_members = redis_client.smembers(kljuc_korpe)
+        print(set_members)
+
+        # Provera da li proizvod postoji u korpi
+        for member in set_members:
+        # Parsiramo JSON string u rečnik
+            product = json.loads(member.encode('utf-8'))
+            print(product.get('id'),proizvodId_str,proizvodId)
+            # Provera da li proizvod ima traženi ID
+            if str(product.get('id')) == proizvodId_str:                # Ako ima, uklanjamo proizvod iz korpe
+                print("usao")
+                redis_client.srem(kljuc_korpe, member)
+                return jsonify({'message': 'Proizvod uspešno obrisan iz korpe.'}), 200
+
+        # Ako ne pronađemo proizvod, vraćamo odgovarajuću grešku
+        return jsonify({'error': 'Proizvod nije pronađen u korpi.'}), 404
+    else:
+        return jsonify({'error': 'Korpa nije pronađena.'}),404
+    
+
+
+
+@redis_routes.route('/vratiKategorije',methods=['GET'])
+def vratiKategorije():
+    """
+    Prikazuje proizvode u korpi korisnika.
+
+    ---
+    parameters:
+      - in: formData
+        name: korisnik_email
+        type: string
+        required: false
+        description: Email korisnika
+
+    responses:
+      200:
+        description: Proizvodi uspešno dodati u korpu
+      500:
+        description: Greška prilikom dodavanja proizvoda u korpu
+    """
+    kljuc_proizvodi = 'proizvodi'  # Ključ za hash sa svim proizvodima u Redisu
+    kljuc_kategorije = 'kategorije'  # Ključ za set sa kategorijama u Redisu
+
+    # Provera da li postoji set za kategorije u Redisu
+    if redis_client.exists(kljuc_kategorije):
+        # Ako postoji set, čitamo vrednosti i vraćamo ih kao listu
+        categories = list(redis_client.smembers(kljuc_kategorije))
+        return categories
+    else:
+        # Ako ne postoji set, prolazimo kroz proizvode i dodajemo kategorije direktno u set
+        if redis_client.exists(kljuc_proizvodi):
+            all_products_json = redis_client.hgetall(kljuc_proizvodi)
+            
+            # Dodajemo kategorije direktno u set
+            redis_client.sadd(kljuc_kategorije, *[json.loads(product)['category'] for product in all_products_json.values()])
+            # Čitamo vrednosti seta i vraćamo ih kao listu
+            categories = list(redis_client.smembers(kljuc_kategorije))
+            return categories, 200
+        else:
+            return jsonify({"error": "Nema proizvoda u Redisu."}),404

@@ -1,7 +1,6 @@
 import React from 'react';
 import './product.css';
 
-import Home from '../Home/home';
 
 const Product = ({ product , addToCart }) => {
 
@@ -20,18 +19,19 @@ const Product = ({ product , addToCart }) => {
       </div>
       <p> {product.category}</p>
       <div class="product-info">
+       {product.novacena && (  <p>Akcijska cena:{product.novacena} </p>)}
+       
       {/* <p> {product.quantity}</p>
       <p> {product.discount}</p> */}
       </div>
       <div class="cta">
-            <div class="price">{product.price} rsd  </div>
+
+            <div class="price"> {product.novacena  && (<p>Stara cena: </p> )} { product.price} rsd  </div>
             {/* <button class="btn" onClick={addToCard}>Add to cart<span class="bg"></span></button> */}
             <button className="btn" onClick={() => addToCart(product.id)}>Add to cart</button>
         </div>
 
     </div>
-
-    
   );
 };
 
