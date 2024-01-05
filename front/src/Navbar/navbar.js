@@ -1,8 +1,20 @@
 import React, { useEffect, useState } from "react";
+import IconButton from "@mui/material/IconButton";
 import "./navbar.css"; // Uvezivanje CSS fajla
 import axios from "axios";
 import Product from "../Product/product";
 import ProizvodUKorpi from "../ProizvodUKorpi/proizvodUKorpi";
+import Button from "@mui/material/Button";
+import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
+import Badge from "@mui/material/Badge";
+import MailIcon from "@mui/icons-material/Mail";
+import Autocomplete from "@mui/material/Autocomplete";
+import { styled } from "@mui/material/styles";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import Stack from "@mui/material/Stack";
+import { Box, Divider } from "@mui/material";
 
 const Navbar = ({
   productsForCard,
@@ -53,6 +65,7 @@ const Navbar = ({
         );
         if (response.data) {
           setKategorije(response.data);
+
           console.log("Sve kategorije su : ", response.data);
         }
       } catch (error) {
@@ -65,7 +78,16 @@ const Navbar = ({
 
     fetchAkcijskiProizvodi();
     fetctKategorije();
-  }, []);
+  }, [proizvodi]);
+
+  const StyledBadge = styled(Badge)(({ theme }) => ({
+    "& .MuiBadge-badge": {
+      right: -3,
+      top: 13,
+      border: `2px solid ${theme.palette.background.paper}`,
+      padding: "0 4px",
+    },
+  }));
 
   const prikaziProizvodeUKorpi = async (emailKorisnika) => {
     try {
@@ -83,10 +105,10 @@ const Navbar = ({
     }
   };
 
-  const kategorijaHandler = (kategorija) => {
-    console.log(kategorija);
+  const kategorijaHandler = (selectedOption) => {
+    console.log(selectedOption.label);
 
-    ucitajProizvodePoKategoriji(kategorija);
+    ucitajProizvodePoKategoriji(selectedOption.label);
   };
 
   const ucitajProizvodePoKategoriji = async (kategorija) => {
@@ -158,6 +180,15 @@ const Navbar = ({
     }
   };
 
+  const options = kategorije.map((kategorija) => ({ label: kategorija }));
+  const calculateTotalPrice = (proizvodi) => {
+    let totalPrice = 0;
+    proizvodi.forEach((product) => {
+      totalPrice += product.price; // Zamijenite "price" sa odgovarajućim svojstvom koje sadrži cenu proizvoda
+    });
+    return totalPrice;
+  };
+
   return (
     <div>
       <header className="header" id="header">
@@ -186,28 +217,38 @@ const Navbar = ({
                   Search
                 </a>
               </li>
-              <li className="nav__item">
-                <a className="nav__link" href="#" onClick={openCart}>
-                  Korpa
-                </a>
-              </li>
+
+              <Stack direction="row" spacing={1}>
+                <li className="nav__item">
+                  <IconButton aria-label="cart" onClick={openCart}>
+                    <StyledBadge
+                      badgeContent={proizvodi.length}
+                      color="secondary"
+                    >
+                      <ShoppingCartIcon />
+                    </StyledBadge>
+                  </IconButton>
+                </li>
+              </Stack>
 
               <li>
-                <div class="dropdown">
-                  <button class="dropbtn">Sortiranje proizvoda</button>
-                  <div class="dropdown-content">
-                    {/* Korišćenje kategorije.map() da se generišu linkovi */}
-                    {kategorije.map((kategorija, index) => (
-                      <a
-                        href="#"
-                        key={index}
-                        onClick={() => kategorijaHandler(kategorija)}
-                      >
-                        {kategorija}
-                      </a>
-                    ))}
-                  </div>
-                </div>
+                <Autocomplete
+                  disablePortal
+                  id="combo-box-demo"
+                  options={options}
+                  sx={{ width: 300 }}
+                  onChange={(event, selectedOption) => {
+                    if (selectedOption) {
+                      kategorijaHandler(selectedOption);
+                    } else {
+                      console.log("Null je !");
+                      setProizvodiPoKategorijama([]);
+                    }
+                  }}
+                  renderInput={(params) => (
+                    <TextField {...params} label="Kategorija" />
+                  )}
+                />
               </li>
             </ul>
             {/* Close button */}
@@ -228,23 +269,65 @@ const Navbar = ({
           </div>
         </nav>
         {showCart && (
-          <div className="cart-popup">
-            <div className="cart-content">
-              <h2 style={{ color: "black" }}>Proizvodi u korpi:</h2>
+  <div className="cart-popup">
+    <div
+      className="cart-content"
+      style={{ maxHeight: "400px", overflowY: "auto" }}
+    >
+      <h2 style={{ color: "black" }}>Proizvodi u korpi:</h2>
 
-              {proizvodi.map((product, index) => (
-                <ProizvodUKorpi
-                  key={index}
-                  product={product}
-                  usernameKorisnika={usernameKorisnika}
-                />
-              ))}
+      {proizvodi.map((product, index) => (
+        <ProizvodUKorpi
+          key={index}
+          product={product}
+          usernameKorisnika={usernameKorisnika}
+        />
+      ))}
+     <hr style={{ width: "300px", border: "2px solid black" }} />
 
-              <button onClick={KupiProizvodeHandler}>Kupi proizvode </button>
-              <button onClick={closeCart}>Zatvori</button>
-            </div>
-          </div>
-        )}
+     
+      <Divider sx={{ my: 2 }} />
+
+      <Box sx={{ p: 2 }}>
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
+          <Typography
+            gutterBottom
+            variant="h5"
+            component="div"
+            style={{ color: "black" }}
+          >
+            Ukupno: 
+          </Typography>
+          <Typography
+            gutterBottom
+            variant="h6"
+            component="div"
+            style={{ color: "black" }}
+          >
+            {calculateTotalPrice(proizvodi)} rsd
+          </Typography>
+        </Stack>
+      </Box>
+
+      <div className="button-container">
+        <Button
+          variant="contained"
+          color="success"
+          onClick={KupiProizvodeHandler}
+        >
+          Kupi
+        </Button>
+        <Button variant="outlined" color="error" onClick={closeCart}>
+          Zatvori
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Prikaz proizvoda po kategoriji */}
       </header>

@@ -138,3 +138,11 @@
   
   justify-content: center;
 }
+
+
+.button-container {
+  display: flex;
+  gap: 10px; /* Razmak između elemenata */
+  justify-content: center; /* Poravnanje elemenata po sredini */
+  margin-top: 20px; /* Opciono, dodatni razmak na vrhu */
+}
