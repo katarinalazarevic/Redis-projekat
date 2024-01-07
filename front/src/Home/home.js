@@ -2,8 +2,8 @@ import React, { useEffect, useState, useContext, useReducer } from "react";
 import "./home.css";
 import axios from "axios";
 import Product from "../Product/product";
-import Cart from "../Cart/cart";
-import ShoppingCart from "../Cart/cart";
+import Button from '@mui/material/Button';
+
 
 // Prilagodite putanju do vašeg UserContext fajla
 import { useAuth } from "../UserContext/UserContext";
@@ -151,7 +151,8 @@ const Home = ({ data }) => {
             </div>
           ) : (
             <div className="dugmeVidiJos btn-primary">
-              <button onClick={handleClick}>Vidi Još</button>
+           
+              <Button variant="contained" onClick={handleClick} >Vidi Jos</Button>
             </div>
           )}
 

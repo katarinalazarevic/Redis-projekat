@@ -15,6 +15,7 @@ import TextField from "@mui/material/TextField";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import Stack from "@mui/material/Stack";
 import { Box, Divider } from "@mui/material";
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const Navbar = ({
   productsForCard,

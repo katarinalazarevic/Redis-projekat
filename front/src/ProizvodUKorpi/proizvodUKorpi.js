@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
 import "../Product/product.css";
 import axios from "axios";
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const ProizvodUKorpi = ({ product, addToCart, usernameKorisnika }) => {
 
@@ -60,9 +62,10 @@ const ProizvodUKorpi = ({ product, addToCart, usernameKorisnika }) => {
       </div>
       <div class="cta">
         <div class="price" >{product.price}  rsd </div>
-        <button className="btn" onClick={() => ObrisiProizvod(product.id)}>
-          Izbaci{" "}
-        </button>
+        
+        <IconButton aria-label="delete" onClick={() => ObrisiProizvod(product.id)} > 
+        <DeleteIcon />
+      </IconButton>
       </div>
     </div>
   );

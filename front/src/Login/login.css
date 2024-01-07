@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 body{
     font-family: 'Poppins', sans-serif;
-    background-image: url(https://nasemul1.github.io/img_host/peakpx.jpg);
+    /* background-image: url(https://nasemul1.github.io/img_host/peakpx.jpg); */
+    background-color:gainsboro;
     background-size: cover;
     background-position: center center;
     background-attachment: fixed;
@@ -9,6 +10,7 @@ body{
     padding: 0;
     color: white;
 }
+
 
 #algn{
     height: 100vh;
