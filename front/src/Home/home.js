@@ -20,6 +20,7 @@ const Home = ({ data }) => {
   const [brojStranice, setBrojStranice] = useState(1);
   const [prikaziKorpu, setPrikaziKorpu] = useState(false);
   const [akcijski, setAkcijski] = useState(false);
+  const [pomocna,setPomocna]= useState(1);
   const [reducerValue,forceUpdate]=useReducer(x=>x+1,0);
 
 
@@ -105,6 +106,7 @@ const Home = ({ data }) => {
 
       if (response.status === 200) {
         console.log("Proizvodi uspešno dodati u korpu");
+        setPomocna(0); 
         setPrikaziKorpu(true);
        
         // Dodatna logika nakon uspešnog dodavanja u korpu
@@ -125,7 +127,10 @@ const Home = ({ data }) => {
   return (
     <>
       <div class="akcijskiProizvodi">
-        <Navbar productsForCard={productsForCard} akcijskiProizvodi={akcijski} addToCart={addToCart} usernameKorisnika={username} />
+        {(pomocna===1  || pomocna ===0 ) &&  (
+          <Navbar productsForCard={productsForCard} akcijskiProizvodi={akcijski} addToCart={addToCart} usernameKorisnika={username} />
+
+        )}
         <h1>Svi proizvodi</h1>
         <section className="sg-products">
           {/* ... */}

@@ -59,6 +59,7 @@ const Navbar = ({
       );
     };
 
+
     const fetctKategorije = async () => {
       try {
         const response = await axios.get(
@@ -76,10 +77,11 @@ const Navbar = ({
         );
       }
     };
+    prikaziProizvodeUKorpi(usernameKorisnika);  // ovo je dodato
 
     fetchAkcijskiProizvodi();
     fetctKategorije();
-  }, [proizvodi]);
+  }, []); //proizvodi je bilo u zagrade
 
   const StyledBadge = styled(Badge)(({ theme }) => ({
     "& .MuiBadge-badge": {
@@ -144,6 +146,46 @@ const Navbar = ({
     }
   };
 
+
+
+  const ObrisiProizvod = async (productId) => {
+    console.log(productId);
+    const id = productId + "";
+    console.log(usernameKorisnika);
+
+    try {
+      const response = await axios.delete(
+        "http://127.0.0.1:5000/obrisiProizvodIzKorpe",
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: {
+            korisnik_email: usernameKorisnika,
+            proizvod_id: id,
+          },
+        }
+      );
+
+      console.log(response);
+
+      if (response.status === 200) {
+        console.log("Proizvod uspešno obrisan iz korpe");
+        openCart();  // da bi apdejt korpu 
+        // Dodatna logika nakon uspešnog brisanja iz korpe
+      } else {
+        console.log("Greška prilikom brisanja proizvoda iz korpe");
+        window.confirm("Greška prilikom brisanja proizvoda iz korpe");
+      }
+    } catch (error) {
+      console.error(
+        "Došlo je do greške prilikom brisanja proizvoda iz korpe:",
+        error
+      );
+      window.confirm("Greška prilikom brisanja proizvoda iz korpe");
+    }
+  };
+
   const akcijskiHandler = (event) => {
     event.preventDefault();
     console.log("petarr");
@@ -151,6 +193,8 @@ const Navbar = ({
     setAkcijski(!akcijski);
   };
 
+
+  
   const openCart = () => {
     setShowCart(true);
 
@@ -282,6 +326,7 @@ const Navbar = ({
           key={index}
           product={product}
           usernameKorisnika={usernameKorisnika}
+          ObrisiProizvod={ObrisiProizvod}
         />
       ))}
      <hr style={{ width: "300px", border: "2px solid black" }} />
