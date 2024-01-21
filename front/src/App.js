@@ -16,7 +16,7 @@ function App() {
     <AuthContextProvider>
      
     <Router>
-      {/* Postavite svoj navbar iznad ruta kako biste ga prikazali na svakoj stranici */}
+     
       
 
       <Routes>

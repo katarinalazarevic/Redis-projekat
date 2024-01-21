@@ -33,7 +33,7 @@ const  Register = () =>
         {
           headers: {
             "Content-Type": "application/json",
-            // Dodajte dodatne zaglavlja ako su potrebna (npr. autorizacija)
+            
           },
         }
       );
@@ -58,7 +58,7 @@ const  Register = () =>
        
       }
     } catch (error) {
-      // Uhvatite i obradite grešku ako se desi, ovo se odnosi na greške koje nisu vezane za statusni kod odgovora (npr. problem sa mrežom, itd.)
+     
       console.error("Došlo je do greške prilikom prijave:", error);
       window.confirm("Neuspešna prijava!");
     

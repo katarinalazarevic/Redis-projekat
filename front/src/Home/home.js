@@ -5,18 +5,18 @@ import Product from "../Product/product";
 import Button from '@mui/material/Button';
 
 
-// Prilagodite putanju do vašeg UserContext fajla
+
 import { useAuth } from "../UserContext/UserContext";
 
 import Navbar from "../Navbar/navbar";
 
 const Home = ({ data }) => {
-  const { username } = useAuth(); // prima podatke iz login
+  const { username } = useAuth(); 
 
   const [proizvodi, setProizvodi] = useState([]);
   const [novih10, setNovih10] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [showButton, setShowButton] = useState(true); // Postavite početno stanje flag-a na true ili false u zavisnosti od potrebe
+  const [showButton, setShowButton] = useState(true); 
   const [brojStranice, setBrojStranice] = useState(1);
   const [prikaziKorpu, setPrikaziKorpu] = useState(false);
   const [akcijski, setAkcijski] = useState(false);
@@ -42,14 +42,14 @@ const Home = ({ data }) => {
       const response = await axios.get(
         `http://127.0.0.1:5000/ucitavajPo10Proizvoda/${brojStranice}`
       );
-      // const response = await axios.get('http://127.0.0.1:5000/ucitavajPo10Proizvoda');
+     
       const novih10 = response.data.proizvodi;
 
-      // Ažuriranje stanja proizvoda
+     
       setProizvodi((prevProizvodi) => [...prevProizvodi, ...novih10]);
 
       console.log("Odgovor od servera:", response.data);
-      // Ovdje možete obraditi odgovor od servera
+      
     } catch (error) {
       console.error("Došlo je do greške prilikom dohvaćanja proizvoda:", error);
     }
@@ -57,14 +57,14 @@ const Home = ({ data }) => {
 
   const handleClick = async () => {
     try {
-      // Ovdje možete manipulirati ili prikazati odgovor dobiven od servera
+      
       setShowButton(false);
       setBrojStranice((prevStranica) => prevStranica + 1);
       console.log("Broj stranice je ", brojStranice);
       const response = await dohvatiProizvodeNaStranici();
       console.log("Odgovor od servera:", response);
     } catch (error) {
-      // Uhvatite grešku ako dođe do problema prilikom poziva
+      
       console.error("Greška prilikom dohvaćanja podataka:", error);
     }
   };
@@ -80,7 +80,7 @@ const Home = ({ data }) => {
   const addToCart = async (productId) => {
     if (productsForCard.includes(productId)) {
       window.confirm("Proizvod je vec u korpi!");
-      return; // Prekida se izvršavanje funkcije jer proizvod već postoji u korpi
+      return; 
     }
     productsForCard=[...productsForCard, productId];
     setProductsForCard(productsForCard);
@@ -109,13 +109,13 @@ const Home = ({ data }) => {
         setPomocna(0); 
         setPrikaziKorpu(true);
        
-        // Dodatna logika nakon uspešnog dodavanja u korpu
+       
       } else {
         console.log("Greška prilikom dodavanja proizvoda u korpu");
         window.confirm("Greška prilikom dodavanja proizvoda u korpu");
       }
     } catch (error) {
-      // Uhvatite i obradite grešku ako se desi, ovo se odnosi na greške koje nisu vezane za statusni kod odgovora (npr. problem sa mrežom, itd.)
+      
       console.error(
         "Došlo je do greške prilikom dodavanja proizvoda u korpu:",
         error
@@ -142,15 +142,10 @@ const Home = ({ data }) => {
                 addToCart={addToCart}
               />
             ))}
-            {/* {prikaziKorpu && (
-               <Cart usernameKorisnika={username} productsForCard={productsForCard} ocistiKorpu={ocistiKorpu}
-                  
-                />
-            )} */}
+            
           </div>
-          {/* <button onClick={ocistiKorpu}> Ocisti korpu </button>
-          <button onClick={KorpaHandler}> Prikazi Korpu</button> */}
-          {showButton ? ( // Provera da li treba prikazati dugme na osnovu vrednosti flag-a
+          
+          {showButton ? ( 
             <div className="dugmeVidiJos btn-primary">
               <button onClick={handleClick}>Prikaži proizvode</button>
             </div>

@@ -29,7 +29,7 @@ const Login = () => {
   const passwordRef = useRef(null);
 
   const handleRegisterClick = () => {
-    // Navigacija na '/Register' rutu
+
     navigate("/Register");
   };
 
@@ -47,14 +47,14 @@ const Login = () => {
 
   const LoginHandler = async (event) => {
     event.preventDefault();
-    // Dobijanje vrednosti iz ref objekata
+    
     const emailValue = emailRef.current.value;
     const passwordValue = passwordRef.current.value;
 
     setEmail(emailValue);
     setPassword(passwordValue);
 
-    const kupacId = 1; // Primer ID-ja kupca
+    const kupacId = 1;
 
     // Poziv funkcije koja šalje GET zahtev na server
     try {
@@ -67,7 +67,7 @@ const Login = () => {
         {
           headers: {
             "Content-Type": "application/json",
-            // Dodajte dodatne zaglavlja ako su potrebna (npr. autorizacija)
+            
           },
         }
       );
@@ -77,7 +77,7 @@ const Login = () => {
       if (response.status === 200) {
         if (response.data.message === "SUCCESS") {
           console.log("Poruka o uspešnoj prijavi:", response.data.message);
-          //setEmail(email); // Postavljanje emaila u stanje
+         
           authCtx.login('dummy-token', email);
           return navigate("/Home");
         } else {
@@ -93,7 +93,7 @@ const Login = () => {
        
       }
     } catch (error) {
-      // Uhvatite i obradite grešku ako se desi, ovo se odnosi na greške koje nisu vezane za statusni kod odgovora (npr. problem sa mrežom, itd.)
+      
       console.error("Došlo je do greške prilikom prijave:", error);
       window.confirm("Neuspešna prijava!");
     

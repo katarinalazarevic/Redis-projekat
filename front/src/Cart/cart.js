@@ -13,7 +13,7 @@ const ShoppingCart = ({ usernameKorisnika,ocistiKorpu ,productsForCard}) => {
   },[productsForCard]);
 
   useEffect(() => {
-   // Poziv metode za prikaz proizvoda u korpi
+  
 const prikaziProizvodeUKorpi = async (emailKorisnika) => {
   try {
     const response = await axios.post('http://127.0.0.1:5000/prikaziProizvodeUKorpi', {
@@ -22,19 +22,19 @@ const prikaziProizvodeUKorpi = async (emailKorisnika) => {
       
     });
 
-    // Ovdje možete manipulisati odgovorom (response) kako je potrebno
+    
     console.log(response.data);
     setProizvodi(response.data);
 
-    // Obrada podataka
+    
   } catch (error) {
-    // Uhvatite grešku ako se desi
+    
     console.error("Greška prilikom dohvatanja proizvoda:", error);
   }
 };
 
-// Poziv funkcije sa odgovarajućim emailom korisnika
-prikaziProizvodeUKorpi(usernameKorisnika); // Ovdje umjesto 'kaca@gmail.com' možete proslijediti stvarni email korisnika
+
+prikaziProizvodeUKorpi(usernameKorisnika); 
 
 
   }, [usernameKorisnika]);

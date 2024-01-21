@@ -11,42 +11,7 @@ const ProizvodUKorpi = ({ product, addToCart, usernameKorisnika,ObrisiProizvod }
   {
     console.log(product);
   },[])
-  // const ObrisiProizvod = async (productId) => {
-  //   console.log(productId);
-  //   const id = productId + "";
-  //   console.log(usernameKorisnika);
-
-  //   try {
-  //     const response = await axios.delete(
-  //       "http://127.0.0.1:5000/obrisiProizvodIzKorpe",
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //         },
-  //         data: {
-  //           korisnik_email: usernameKorisnika,
-  //           proizvod_id: id,
-  //         },
-  //       }
-  //     );
-
-  //     console.log(response);
-
-  //     if (response.status === 200) {
-  //       console.log("Proizvod uspešno obrisan iz korpe");
-  //       // Dodatna logika nakon uspešnog brisanja iz korpe
-  //     } else {
-  //       console.log("Greška prilikom brisanja proizvoda iz korpe");
-  //       window.confirm("Greška prilikom brisanja proizvoda iz korpe");
-  //     }
-  //   } catch (error) {
-  //     console.error(
-  //       "Došlo je do greške prilikom brisanja proizvoda iz korpe:",
-  //       error
-  //     );
-  //     window.confirm("Greška prilikom brisanja proizvoda iz korpe");
-  //   }
-  // };
+ 
 
   return (
     <div className="product">

@@ -23,7 +23,7 @@ const Navbar = ({
   addToCart,
   usernameKorisnika,
 }) => {
-  const [showCart, setShowCart] = useState(false); // Stanje koje će kontrolisati prikazivanje korpe
+  const [showCart, setShowCart] = useState(false); 
   const [akcijski, setAkcijski] = useState(false);
   const [akcijskiProizvodi1, setakcijskiProizvodi] = useState([]);
   const [kategorije, setKategorije] = useState([]);
@@ -38,7 +38,7 @@ const Navbar = ({
           "http://localhost:5000/prikazi_akcijske_proizvode"
         );
         if (response.data) {
-          //setAkcijski(response.data.proizvodi);
+         
           setakcijskiProizvodi(response.data);
           console.log("Akcijski proizvodi:", response.data);
         } else {
@@ -77,11 +77,11 @@ const Navbar = ({
         );
       }
     };
-    prikaziProizvodeUKorpi(usernameKorisnika);  // ovo je dodato
+    prikaziProizvodeUKorpi(usernameKorisnika); 
 
     fetchAkcijskiProizvodi();
     fetctKategorije();
-  }, []); //proizvodi je bilo u zagrade
+  }, []); 
 
   const StyledBadge = styled(Badge)(({ theme }) => ({
     "& .MuiBadge-badge": {
@@ -132,7 +132,7 @@ const Navbar = ({
         console.log("Proizvodi po kategoriji:", response.data);
         setProizvodiPoKategorijama(response.data);
 
-        // Ovde dalje možete manipulisati sa podacima koje dobijete
+       
       } else {
         console.error(
           "Došlo je do greške prilikom dohvatanja proizvoda po kategoriji"
@@ -172,7 +172,7 @@ const Navbar = ({
       if (response.status === 200) {
         console.log("Proizvod uspešno obrisan iz korpe");
         openCart();  // da bi apdejt korpu 
-        // Dodatna logika nakon uspešnog brisanja iz korpe
+        
       } else {
         console.log("Greška prilikom brisanja proizvoda iz korpe");
         window.confirm("Greška prilikom brisanja proizvoda iz korpe");
