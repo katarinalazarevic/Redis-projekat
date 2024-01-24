@@ -17,7 +17,8 @@ const ProizvodUKorpi = ({ product, addToCart, usernameKorisnika,ObrisiProizvod }
     <div className="product">
       <div class="title">{product.producerName}</div>
       <div>
-        <img src={product.picture}></img>
+      <img src={'../../Slike/' + product.picture}
+       style={{ width: '100px', height: '100px'}}  />
       </div>
       
       <p> {product.picture}</p>
@@ -26,7 +27,8 @@ const ProizvodUKorpi = ({ product, addToCart, usernameKorisnika,ObrisiProizvod }
      
       </div>
       <div class="cta">
-        <div class="price" >{product.price}  rsd </div>
+      <div class="price" > noova cena {product.novacena}  rsd </div>
+        <div class="price" > Stvarna cena {product.price}  rsd </div>
         
         <IconButton aria-label="delete" onClick={() => ObrisiProizvod(product.id)} > 
         <DeleteIcon />

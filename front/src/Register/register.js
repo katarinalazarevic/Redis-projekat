@@ -112,13 +112,7 @@ const  Register = () =>
             <input type="text" placeholder="Grad" className="inpt" required onChange={handleGradChange} />
             <input type="text" placeholder="Broj" className="inpt" onChange={handleBrojChange} required />
 
-            <div className="rem-forgot">
-              <div className="rem">
-                <input type="checkbox" id="rem-tik" />
-                <label htmlFor="rem-tik">Remember me</label>
-              </div>
-              <span><a href="#">Forgot password</a></span>
-            </div>
+            
             <button  className="btn" onClick={RegisterHandler}>Register</button>
           </form>
           <p className="footer" onClick={LoginHandler}>Vec imate akaunt?  <a href="#">Login</a></p>

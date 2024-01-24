@@ -1,12 +1,21 @@
 import React from "react";
 import "./product.css";
+import  slikaajax  from '../Slike/ajax.jpg'  
+
+
 
 const Product = ({ product, addToCart }) => {
   return (
     <div className="product">
       <div class="title">{product.producerName}</div>
       <div>
-        <img src={product.picture}></img>
+     
+      <img src={'../../Slike/' + product.picture}
+       style={{ width: '200px', height: '200px'}}  />
+ <p> {product.productDescription}</p>
+      
+      
+
       </div>
       <p> {product.category}</p>
       <div class="product-info">

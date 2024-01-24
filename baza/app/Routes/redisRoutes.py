@@ -1,14 +1,15 @@
 import datetime
 import json
-from sqlalchemy import or_
+from sqlalchemy import desc, or_
 import pickle
 from flask import Blueprint, jsonify, request
 from app.Models.modelsKatalog import Proizvod
+from app.Models.modelsKupac import Kupac
 from app.Models.modelsRedis import RedisService
 from flasgger import swag_from
 from sqlalchemy.orm import class_mapper
 from database import redis_client,db_session
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 
@@ -141,6 +142,7 @@ def kupi_proizvode():
 
     if proizvodi_u_korpi:
         print(proizvodi_u_korpi)
+        ukupna_cena_proizvoda = 0
         # Iteriranje kroz proizvode u korpi
         for proizvod_id_str in proizvodi_u_korpi:
             proizvod_id = json.loads(proizvod_id_str)
@@ -150,23 +152,37 @@ def kupi_proizvode():
             #proizvod_dict=json.loads(json_proizvod)
             print(json_proizvod)
             if json_proizvod:
-                print("opet")
                 proizvod_dict = json.loads(json_proizvod)
+                ukupna_cena_proizvoda += proizvod_dict.get('price', 0)
+                print("opet")
                 print(proizvod_dict)
                 trenutna_kolicina = proizvod_dict.get('quantity', 0)
+                trenutni_numofClic=proizvod_dict.get('numOfCliks', 0)
+                nova=trenutni_numofClic+1
                 print("ja",trenutna_kolicina)
                 nova_kolicina = max(0, trenutna_kolicina - 1)  # Smanjite količinu za 1 (ili drugi odgovarajući broj)
 
                 proizvod_dict['quantity'] = nova_kolicina
+                proizvod_dict['numOfCliks'] = nova
 
                             # Ažurirajte vrednost direktno u Redis hash mapi
                 redis_client.hset('proizvodi', str(proizvod_id['id']), json.dumps(proizvod_dict))
+                proizvod=Proizvod.query.filter_by(id=proizvod_id["id"]).first()
+                if(proizvod):
+                    proizvod.numOfCliks+=nova 
+                    db_session.commit()
         # Pražnjenje korpe u Redisu
+            korisnik = Kupac.query.filter_by(email=korisnik_email).first()
+
+            if korisnik:
+                # Ažuriranje vrednosti bodova korisnika u PostgreSQL bazi
+                korisnik.bodovi += ukupna_cena_proizvoda
+                db_session.commit()
         redis_client.delete(korpa_key)
 
         return jsonify({'message': 'Uspešna kupovina!'})
 
-    return jsonify({'message': 'Korpa je prazna.'}), 404
+    return jsonify({'message': 'Korpa je prazna.'}),404
                     
     
 @redis_routes.route('/citanjeProzivodaIzKorpe/<int:produc_id>', methods=['GET'])
@@ -380,7 +396,8 @@ def prikazi_akcijske_proizvode():
                         "productDescription": proizvod[1]['productDescription'],
                         "discount": proizvod[1]['discount'],
                         "novacena": proizvod[1]['price'],
-                        "price": proizvod[1]['oldPrice']
+                        "price": proizvod[1]['oldPrice'],
+                        "picture":proizvod[1]['picture']
                     }
                     for proizvod in proizvodi_za_popust
                 ]
@@ -627,3 +644,56 @@ def vratiKategorije():
 def syncredisandgres():
     datafromredis=redis_client.hgetall('proizvodi')
     Proizvod.updateMainDB(datafromredis)
+
+
+@redis_routes.route('/vratiNajpopularnijeproizvode', methods=['GET'])
+def vratiNajpopularnijeproizvode():
+    proizvodi_raw = redis_client.hgetall('proizvodi')
+
+    # Pretvaranje JSON stringova u Python objekte
+    proizvodi = {int(k): json.loads(v) for k, v in proizvodi_raw.items()}
+
+    # Sortiranje proizvoda na osnovu numOfCliks u opadajućem redosledu
+    sortirani_proizvodi = sorted(proizvodi.values(), key=lambda x: x['numOfCliks'], reverse=True)
+
+    # Vraćanje prvih 5 proizvoda
+    prvih_5_proizvoda = sortirani_proizvodi[:5]
+
+    return jsonify(prvih_5_proizvoda)
+
+
+@redis_routes.route('/ucitajNajaktivnijeKorisnike', methods=['GET'])
+def ucitajNajaktivnijeKorisnike():
+    try:
+        #  prvo čitanje iz keša
+        najaktivniji_korisnici = redis_client.get("najaktivniji_korisnici")
+
+        if najaktivniji_korisnici:
+          
+            najaktivniji_korisnici = json.loads(najaktivniji_korisnici)
+            return jsonify(najaktivniji_korisnici)
+        else:
+            
+            korisnici = Kupac.query.order_by(desc(Kupac.bodovi)).all()
+
+            # Prikazujemo najviše 10 korisnika, ali možete prilagoditi prema potrebi
+            broj_korisnika = 10
+            najaktivniji_korisnici = [
+                {
+                    'ime': korisnik.ime,  
+                    'prezime': korisnik.prezime,
+                    'bodovi': korisnik.bodovi
+                }
+                for korisnik in korisnici[:broj_korisnika]
+            ]
+
+            # Konvertujemo listu u JSON format
+            json_najaktivniji_korisnici = json.dumps(najaktivniji_korisnici)
+
+            
+            redis_client.setex("najaktivniji_korisnici", timedelta(minutes=30).seconds, json_najaktivniji_korisnici)
+
+            return jsonify(najaktivniji_korisnici)
+
+    except Exception as e:
+        return jsonify({"error":str(e)})

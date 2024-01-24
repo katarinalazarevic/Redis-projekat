@@ -21,6 +21,16 @@ const Home = ({ data }) => {
   const [prikaziKorpu, setPrikaziKorpu] = useState(false);
   const [akcijski, setAkcijski] = useState(false);
   const [pomocna,setPomocna]= useState(1);
+
+
+  const [prikaziNajpopularnijeProizvode, setprikaziNajpopularnijeProizvode]= useState(false);
+  const [najpopularnijiProizvodi,setnajpopularnijiProizvodi ]= useState([]);
+
+
+
+  const [prikaziNajaktivnije, setprikaziNajaktivnije]= useState(false);
+  const [najaktivnijiKupci, setNajaktivnijeKupce]= useState([]);
+
   const [reducerValue,forceUpdate]=useReducer(x=>x+1,0);
 
 
@@ -28,9 +38,70 @@ const Home = ({ data }) => {
 
   console.log("Email korisnika:", username);
 
+  const prikaziNajaktivnijeHandler= ()=>
+  {
+      setprikaziNajaktivnije(!prikaziNajaktivnije);
+
+      console.log("Prikazi najaktivnije korisnike je ",prikaziNajaktivnije);
+  };
+
+
+  const prikaziNajpopularnijeProizvodeHandler= ()=>
+  {
+      setprikaziNajpopularnijeProizvode(!prikaziNajpopularnijeProizvode);
+
+     
+  };
+
+
+
+  const pribaviNajaktivnijeKupce = async ()=>
+  {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/ucitajNajaktivnijeKorisnike`
+      );
+     
+      
+
+      setNajaktivnijeKupce(response.data);
+      
+
+      console.log("Odgovor od servera:", response.data);
+      
+    } catch (error) {
+      console.error("Došlo je do greške prilikom dohvaćanja proizvoda:", error);
+    }
+  };
+  
+
+  const pribaviNajpopularnijeProizvode = async ()=>
+  {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/vratiNajpopularnijeproizvode`
+      );
+     
+      
+
+     setnajpopularnijiProizvodi(response.data);
+      
+
+      console.log("Odgovor od servera:", response.data);
+      
+    } catch (error) {
+      console.error("Došlo je do greške prilikom dohvaćanja proizvoda:", error);
+    }
+  };
+
+
+
   useEffect(() => {
     console.log('Niz proizvoda za korpu:', productsForCard);
     setPrikaziKorpu(true);
+    pribaviNajaktivnijeKupce();
+    pribaviNajpopularnijeProizvode();
+
   }, [productsForCard]);
 
   const KorpaHandler = () => {
@@ -128,9 +199,54 @@ const Home = ({ data }) => {
     <>
       <div class="akcijskiProizvodi">
         {(pomocna===1  || pomocna ===0 ) &&  (
-          <Navbar productsForCard={productsForCard} akcijskiProizvodi={akcijski} addToCart={addToCart} usernameKorisnika={username} />
+          <Navbar productsForCard={productsForCard} akcijskiProizvodi={akcijski} addToCart={addToCart} usernameKorisnika={username} 
+          prikaziNajaktivnijeHandler={prikaziNajaktivnijeHandler}  prikaziNajpopularnijeProizvodeHandler={prikaziNajpopularnijeProizvodeHandler}/>
 
         )}
+
+{prikaziNajaktivnije && (
+  <div>
+    <div style={{ textAlign: 'center'}}> <h1> NAJAKTIVNIJI KUPCI</h1> </div>
+    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
+      <thead>
+        <tr>
+          <th style={{ backgroundColor: '#f2f2f2', color:'red', padding: '10px', textAlign: 'center' }}>Ime</th>
+          <th style={{ backgroundColor: '#f2f2f2', color:'red', padding: '10px', textAlign: 'center' }}>Prezime</th>
+          <th style={{ backgroundColor: '#f2f2f2',color:'red', padding: '10px', textAlign: 'center' }}>Bodovi</th>
+        </tr>
+      </thead>
+      <tbody>
+        {najaktivnijiKupci.map((kupac, index) => (
+          <tr key={index}>
+            <td style={{ border: '1px solid #dddddd',color:'black', padding: '10px' }}>{kupac.ime}</td>
+            <td style={{ border: '1px solid #dddddd',color:'black', padding: '10px' }}>{kupac.prezime}</td>
+            <td style={{ border: '1px solid #dddddd',color:'black', padding: '10px' }}>{kupac.bodovi}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+)}
+
+{prikaziNajpopularnijeProizvode && (
+  <div>
+    <div style={{ textAlign: 'center' }}>
+      <h1 style={{color:'red'}}> NAJPOPULARNIJI PROIZVODI </h1>
+    </div>
+    <div style={{ display: 'flex', justifyContent: 'center' }}>
+      {najpopularnijiProizvodi.map((product) => (
+        <Product
+          key={product.id}
+          product={product}
+          addToCart={addToCart}
+        />
+      ))}
+    </div>
+  </div>
+)}
+
+
+
         <h1>Svi proizvodi</h1>
         <section className="sg-products">
           {/* ... */}
@@ -147,12 +263,15 @@ const Home = ({ data }) => {
           
           {showButton ? ( 
             <div className="dugmeVidiJos btn-primary">
-              <button onClick={handleClick}>Prikaži proizvode</button>
+             
+              <Button variant="contained" onClick={handleClick} >Prikazi proizvode</Button>
             </div>
           ) : (
             <div className="dugmeVidiJos btn-primary">
            
               <Button variant="contained" onClick={handleClick} >Vidi Jos</Button>
+
+              
             </div>
           )}
 

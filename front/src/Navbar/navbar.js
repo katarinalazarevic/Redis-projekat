@@ -22,6 +22,8 @@ const Navbar = ({
   akcijskiProizvodi,
   addToCart,
   usernameKorisnika,
+  prikaziNajaktivnijeHandler,
+  prikaziNajpopularnijeProizvodeHandler
 }) => {
   const [showCart, setShowCart] = useState(false); 
   const [akcijski, setAkcijski] = useState(false);
@@ -217,6 +219,7 @@ const Navbar = ({
       );
 
       console.log(response.data);
+      window.confirm("Uspesno kupljen proizvod!")
 
       // Obrada podataka
     } catch (error) {
@@ -241,27 +244,21 @@ const Navbar = ({
           <div className="nav__menu" id="nav-menu">
             <ul className="nav__list">
               <li className="nav__item">
-                <a className="nav__link" href="#">
-                  Profil
-                </a>
+                
               </li>
 
               <li className="nav__item">
-                <a className="nav__link" href="#" onClick={akcijskiHandler}>
-                  Akcijski proizvodi
+                <a className="nav__link" href="#" onClick={prikaziNajaktivnijeHandler}>
+                 Najaktivniji kupci
                 </a>
               </li>
               <li className="nav__item">
-                <a className="nav__link" href="#">
+                <a className="nav__link" href="#"  onClick={prikaziNajpopularnijeProizvodeHandler}>
                   {" "}
                   Najpopularniji proizvodi
                 </a>
               </li>
-              <li className="nav__item">
-                <a className="nav__link" href="#">
-                  Search
-                </a>
-              </li>
+             
 
               <Stack direction="row" spacing={1}>
                 <li className="nav__item">

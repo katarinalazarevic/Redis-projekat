@@ -8,6 +8,7 @@ import UserContext from '../UserContext/UserContext';
 import Failure from "../images/cancel.png";
 import Succes1 from "../images/check.png";
 import { AuthContext } from "../UserContext/UserContext";
+import "./login.css"
 
 
 import "../api/axios";
@@ -119,7 +120,7 @@ const Login = () => {
         />
       )}
       <div id="algn">
-        <div id="container">
+        <div id="containerLogin">
           <p className="head">Login</p>
           <form action="/" className="input-container">
             <input
@@ -140,17 +141,7 @@ const Login = () => {
               onChange={handlePasswordChange}
               required
             />
-            <div className="rem-forgot">
-              <div className="rem">
-                <input type="checkbox" id="rem-tik" />
-                <label htmlFor="rem-tik">Remember me</label>
-              </div>
-              <span>
-                <a href="#" onClick={stampajVrednosti}>
-                  Forgot password
-                </a>
-              </span>
-            </div>
+           
             <button type="submit" className="btn" onClick={LoginHandler}>
               Login
             </button>

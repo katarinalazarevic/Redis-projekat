@@ -27,3 +27,25 @@
   .akcijskiProizvodi h1 {
     margin-bottom: 20px; /* Margina ispod naslova */
   }
+
+  /* Stilizacija tabele */
+table {
+  width: 100%; /* Da zauzme celu širinu roditeljskog kontejnera */
+  border-collapse: collapse; /* Da se spoje granice ćelija */
+  margin-top: 20px; /* Odstupanje od vrha stranice */
+}
+
+/* Stilizacija zaglavlja tabele */
+th {
+  background-color: #f2f2f2; /* Boja pozadine */
+  padding: 10px; /* Razmak između sadržaja i ivica ćelije */
+  text-align: left; /* Poravnanje teksta levo */
+}
+
+/* Stilizacija redova tabele */
+td {
+  border: 1px solid #dddddd; /* Ivica ćelije */
+  padding: 10px; /* Razmak između sadržaja i ivica ćelije */
+}
+
+/* Dodatni stilovi po potrebi */
